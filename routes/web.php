@@ -17,4 +17,4 @@ Route::get('/', function () {
 
 
 //
-Route::get('/weixin/valid','WxControlelr@valid');
+Route::get('/weixin/valid','WxController@valid');
