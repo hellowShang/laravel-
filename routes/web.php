@@ -16,6 +16,7 @@ Route::get('/', function () {
 });
 
 
-//
+// 配置提交时的路由
 Route::get('/weixin/valid','WxController@valid');
+// 扫码时的路由
 Route::post('/weixin/valid','WxController@wx');
