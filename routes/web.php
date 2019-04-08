@@ -18,3 +18,4 @@ Route::get('/', function () {
 
 //
 Route::get('/weixin/valid','WxController@valid');
+Route::post('/weixin/wx','WxController@wx');
