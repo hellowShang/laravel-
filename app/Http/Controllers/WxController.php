@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class WxController extends Controller
 {
@@ -28,9 +29,43 @@ class WxController extends Controller
 
     // 获取access_token
     public  function getAccessToken(){
-        // 接口调用请求说明
-        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".env('WX_APPID')."&secret=".env('WX_SECRET');
-        // echo $url;
-        $response = file_get_contents($url);
+        // 检测是否有缓存
+        $key = 'access_token';
+        $token = Redis::get($key);
+        if($token){
+            echo 111;
+        }else{
+            echo 222;
+            // 接口调用请求说明
+            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".env('WX_APPID')."&secret=".env('WX_SECRET');
+            // echo $url;
+
+            // 正常情况下，微信会返回下述JSON数据包给公众号
+            $response = file_get_contents($url);
+            // var_dump($response);
+
+            $arr = json_decode($response,true);
+
+            // 存缓存
+            Redis::set($key,$arr['access_token']);
+            // 缓存存储事件1小时
+            Redis::expire($key,3600);
+
+            $token = $arr['access_token'];
+        }
+        // 返回access_token
+        return $token;
+    }
+
+    // 获取用户基本信息
+    public function userInfo(){
+        // 获取access_token
+        $access_token = $this->getAccessToken();
+
+        //获取用户基本信息
+        $url = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='.$access_token.'&openid=o9FAg1Fzv1WOYzX8xGinlYQtRMnc&lang=zh_CN';
+//        $response = file_get_contents($url);
+        var_dump($url);
+
     }
 }
