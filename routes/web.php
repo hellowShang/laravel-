@@ -20,3 +20,5 @@ Route::get('/', function () {
 Route::get('/weixin/valid','WxController@valid');
 // 扫码时的路由
 Route::post('/weixin/valid','WxController@wx');
+// 获取access_token
+Route::get('/wenxin/access_token','WxController@getAccessToken');
