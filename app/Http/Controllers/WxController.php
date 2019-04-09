@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
+use  Illuminate\Support\Facades\Log;
 
 class WxController extends Controller
 {
@@ -25,7 +26,8 @@ class WxController extends Controller
         // 检测是否有logs目录，没有就创建
         is_dir('logs') or mkdir('logs',0777,true);
         file_put_contents("logs/wx.log",$str,FILE_APPEND);
-        file_put_contents("logs/test.log",$arr,FILE_APPEND);
+        Log::channel('logs/pay')->info($arr);
+//        file_put_contents("logs/test.log",$arr,FILE_APPEND);
 
         // 回应微信
         echo 'success';
