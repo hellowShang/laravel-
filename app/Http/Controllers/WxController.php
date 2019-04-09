@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Model\Valid;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
-use  Illuminate\Support\Facades\Log;
 
 class WxController extends Controller
 {
@@ -20,14 +20,21 @@ class WxController extends Controller
         // 接收微信消息推送post过来的信息并写入到自定义的log日志中
         $content = file_get_contents('php://input');
         $arr = json_decode(json_encode($content),true);
-
+        if(!$arr){
+            $valid = new Valid();
+            $valid->username = $arr['ToUserName'];
+            $valid->openid = $arr['FromUserName'];
+            $valid->create_time = $arr['CreateTime'];
+            $valid->msgtype = $arr['MsgType'];
+            $valid->event = $arr['Event'];
+            $valid->eventkey = $arr['EventKey'];
+            Valid::save();
+        }
         $time = date('Y-m-d H:i:s');
         $str = $time.$content."\n";
         // 检测是否有logs目录，没有就创建
         is_dir('logs') or mkdir('logs',0777,true);
         file_put_contents("logs/wx.log",$str,FILE_APPEND);
-        Log::channel('logs/pay')->info($arr);
-//        file_put_contents("logs/test.log",$arr,FILE_APPEND);
 
         // 回应微信
         echo 'success';
