@@ -16,9 +16,11 @@ Route::get('/', function () {
 });
 
 
-// 配置提交时的路由
+// 处理首次介入的路由
 Route::get('/weixin/valid','WxController@valid');
-// 扫码时的路由
+
+// 微信消息推送事件
 Route::post('/weixin/valid','WxController@wx');
+
 // 获取access_token
 Route::get('/wenxin/access_token','WxController@getAccessToken');

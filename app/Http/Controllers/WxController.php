@@ -19,6 +19,7 @@ class WxController extends Controller
         $content = file_get_contents('php://input');
         $time = date('Y-m-d H:i:s');
         $str = $time.$content."\n";
+        is_dir('logs') or mkdir('logs',0777,true);
         file_put_contents("logs/wx.log",$str,FILE_APPEND);
 
         // 回应微信
