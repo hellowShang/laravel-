@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Model\Valid;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
-
+use App\Model\Wechar\WecharModel;
 class WxController extends Controller
 {
     // 处理微信第一次接入
@@ -17,19 +17,50 @@ class WxController extends Controller
 
     // 接收微信消息推送
     public function wx(){
-        // 接收微信消息推送post过来的信息并写入到自定义的log日志中
+        // 接收微信消息推送post过来的信息
         $content = file_get_contents('php://input');
-        $arr = json_decode(json_encode($content),true);
-        if(!$arr){
-            $valid = new Valid();
-            $valid->username = $arr['ToUserName'];
-            $valid->openid = $arr['FromUserName'];
-            $valid->create_time = $arr['CreateTime'];
-            $valid->msgtype = $arr['MsgType'];
-            $valid->event = $arr['Event'];
-            $valid->eventkey = $arr['EventKey'];
-            Valid::save();
+
+        // 把xml格式的数据转化成对象格式
+        $xml = simplexml_load_string($content);
+
+        // 获取openID
+        $openid = $xml->FromUserName;
+        // 获取用户基本信息
+        $userInfo = $this-> getUserInfo($openid);
+        // var_dump($userInfo);die;
+        if($userInfo){
+            $info = [
+                'subscribe' =>$userInfo['subscribe'],
+                'openid' =>$userInfo['openid'],
+                'nickname' =>$userInfo['nickname'],
+                'sex' =>$userInfo['sex'],
+                'city' =>$userInfo['city'],
+                'province' =>$userInfo['province'],
+                'country' =>$userInfo['country'],
+                'headimgurl' =>$userInfo['headimgurl'],
+                'subscribe_time' =>$userInfo['subscribe_time'],
+            ];
+
+            // 数据入库
+            $res = WecharModel::insertGetId($info);
+            if($res){
+
+            $message = "<xml>
+                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                <CreateTime>time()</CreateTime>
+                <MsgType><![CDATA[text]]></MsgType>
+                <Content><![CDATA[你好".$userInfo['nickname']."，欢迎关注]]></Content>
+            </xml>";
+            
+                echo $message;
+            }else{
+                echo 'not ok';
+            }
         }
+
+
+        // 写入到自定义的log日志中
         $time = date('Y-m-d H:i:s');
         $str = $time.$content."\n";
         // 检测是否有logs目录，没有就创建
@@ -38,6 +69,7 @@ class WxController extends Controller
 
         // 回应微信
         echo 'success';
+
     }
 
     // 获取access_token
@@ -71,15 +103,14 @@ class WxController extends Controller
     }
 
     // 获取用户基本信息
-    public function userInfo(){
+    public function getUserInfo($openid){
         // 获取access_token
         $access_token = $this->getAccessToken();
 
-        echo 'tonke:'.$access_token;
-//        //获取用户基本信息
-//        $url = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='.$access_token.'&openid=o9FAg1Fzv1WOYzX8xGinlYQtRMnc&lang=zh_CN';
-////        $response = file_get_contents($url);
-//        var_dump($url);
-
+        //获取用户基本信息
+        $url = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='.$access_token.'&openid='.$openid.'&lang=zh_CN';
+        $response = file_get_contents($url);
+        $arr = json_decode($response,true);
+        return $arr;
     }
 }
