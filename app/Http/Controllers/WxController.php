@@ -23,43 +23,6 @@ class WxController extends Controller
         // 把xml格式的数据转化成对象格式
         $xml = simplexml_load_string($content);
 
-        // 获取openID
-        $openid = $xml->FromUserName;
-        // 获取用户基本信息
-        $userInfo = $this-> getUserInfo($openid);
-        // var_dump($userInfo);die;
-        if($userInfo){
-            $info = [
-                'subscribe' =>$userInfo['subscribe'],
-                'openid' =>$userInfo['openid'],
-                'nickname' =>$userInfo['nickname'],
-                'sex' =>$userInfo['sex'],
-                'city' =>$userInfo['city'],
-                'province' =>$userInfo['province'],
-                'country' =>$userInfo['country'],
-                'headimgurl' =>$userInfo['headimgurl'],
-                'subscribe_time' =>$userInfo['subscribe_time'],
-            ];
-
-            // 数据入库
-            $res = WecharModel::insertGetId($info);
-            if($res){
-
-            $message = "<xml>
-                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
-                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
-                <CreateTime>time()</CreateTime>
-                <MsgType><![CDATA[text]]></MsgType>
-                <Content><![CDATA[你好".$userInfo['nickname']."，欢迎关注]]></Content>
-            </xml>";
-            
-                echo $message;
-            }else{
-                echo 'not ok';
-            }
-        }
-
-
         // 写入到自定义的log日志中
         $time = date('Y-m-d H:i:s');
         $str = $time.$content."\n";
@@ -67,12 +30,83 @@ class WxController extends Controller
         is_dir('logs') or mkdir('logs',0777,true);
         file_put_contents("logs/wx.log",$str,FILE_APPEND);
 
-        // 回应微信
-        echo 'success';
+        // 获取openID
+        $openid = $xml->FromUserName;
+        // 获取用户基本信息
+        $userInfo = $this-> getUserInfo($openid);
+        // var_dump($userInfo);die;
+        if($userInfo){
+            if($xml->MsgType == 'event'){
+                if($xml->Event == 'subscribe'){
+                    // 查询当前openID数据库是否存在
+                    $res = WecharModel::where(['openid'=>$openid])->frist();
+                    if($res){
+                        // 已入库，消息回复
+                        $message = "<xml>
+                            <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                            <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                            <CreateTime>time()</CreateTime>
+                            <MsgType><![CDATA[text]]></MsgType>
+                            <Content><![CDATA[你好".$userInfo['nickname']."，欢迎回来]]></Content>
+                        </xml>";
+
+                        echo $message;
+                    }else{
+
+                        // 首次关注，消息入库
+                        $info = [
+                            'subscribe' =>$userInfo['subscribe'],
+                            'openid' =>$userInfo['openid'],
+                            'nickname' =>$userInfo['nickname'],
+                            'sex' =>$userInfo['sex'],
+                            'city' =>$userInfo['city'],
+                            'province' =>$userInfo['province'],
+                            'country' =>$userInfo['country'],
+                            'headimgurl' =>$userInfo['headimgurl'],
+                            'subscribe_time' =>$userInfo['subscribe_time'],
+                        ];
+
+                        // 数据入库
+                        $res = WecharModel::insertGetId($info);
+                        if($res){
+
+                            // 消息回复
+                            $message = "<xml>
+                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                                <CreateTime>time()</CreateTime>
+                                <MsgType><![CDATA[text]]></MsgType>
+                                <Content><![CDATA[你好".$userInfo['nickname']."，欢迎关注]]></Content>
+                            </xml>";
+
+                            echo $message;
+                        }
+                    }
+                }
+            }
+
+        }
+
+
+
 
     }
 
     // 获取access_token
+
+    public function getUserInfo($openid){
+        // 获取access_token
+        $access_token = $this->getAccessToken();
+
+        //获取用户基本信息
+        $url = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='.$access_token.'&openid='.$openid.'&lang=zh_CN';
+        $response = file_get_contents($url);
+        $arr = json_decode($response,true);
+        return $arr;
+    }
+
+    // 获取用户基本信息
+
     public  function getAccessToken(){
         // 检测是否有缓存
         $key = 'access_token';
@@ -100,17 +134,5 @@ class WxController extends Controller
         }
         // 返回access_token
         return $token;
-    }
-
-    // 获取用户基本信息
-    public function getUserInfo($openid){
-        // 获取access_token
-        $access_token = $this->getAccessToken();
-
-        //获取用户基本信息
-        $url = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='.$access_token.'&openid='.$openid.'&lang=zh_CN';
-        $response = file_get_contents($url);
-        $arr = json_decode($response,true);
-        return $arr;
     }
 }
