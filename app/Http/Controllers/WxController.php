@@ -17,29 +17,26 @@ class WxController extends Controller
 
     // 接收微信消息推送
     public function wx(){
-        // 接收微信消息推送post过来的信息
+        // 接收微信消息推送post过来的信息并写入到自定义的log日志中
         $content = file_get_contents('php://input');
-
-        // 把xml格式的数据转化成对象格式
-        $xml = simplexml_load_string($content);
-
-        // 写入到自定义的log日志中
         $time = date('Y-m-d H:i:s');
         $str = $time.$content."\n";
         // 检测是否有logs目录，没有就创建
         is_dir('logs') or mkdir('logs',0777,true);
         file_put_contents("logs/wx.log",$str,FILE_APPEND);
 
+        // 把xml格式的数据转化成对象格式
+        $xml = simplexml_load_string($content);
         // 获取openID
         $openid = $xml->FromUserName;
         // 获取用户基本信息
         $userInfo = $this-> getUserInfo($openid);
         // var_dump($userInfo);die;
         if($userInfo){
-            if($xml->MsgType == 'event'){
-                if($xml->Event == 'subscribe'){
+            if($xml->MsgType == 'event' && $xml->Event == 'subscribe'){
                     // 查询当前openID数据库是否存在
                     $res = WecharModel::where(['openid'=>$openid])->first();
+                    // var_dump($res);die;
                     if($res){
                         // 已入库，消息回复
                         $message = "<xml>
@@ -47,12 +44,9 @@ class WxController extends Controller
                             <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
                             <CreateTime>time()</CreateTime>
                             <MsgType><![CDATA[text]]></MsgType>
-                            <Content><![CDATA[你好".$userInfo['nickname']."，欢迎回来]]></Content>
+                            <Content><![CDATA[欢迎回来".$userInfo['nickname']."]]></Content>
                         </xml>";
-
-                        echo $message;
                     }else{
-
                         // 首次关注，消息入库
                         $info = [
                             'subscribe' =>$userInfo['subscribe'],
@@ -67,9 +61,8 @@ class WxController extends Controller
                         ];
 
                         // 数据入库
-                        $res = WecharModel::insertGetId($info);
+                        $res = WecharModel::insert($info);
                         if($res){
-
                             // 消息回复
                             $message = "<xml>
                                 <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
@@ -78,22 +71,14 @@ class WxController extends Controller
                                 <MsgType><![CDATA[text]]></MsgType>
                                 <Content><![CDATA[你好".$userInfo['nickname']."，欢迎关注]]></Content>
                             </xml>";
-
-                            echo $message;
                         }
                     }
-                }
+                echo $message;
             }
-
         }
-
-
-
-
     }
 
     // 获取access_token
-
     public function getUserInfo($openid){
         // 获取access_token
         $access_token = $this->getAccessToken();
@@ -106,7 +91,6 @@ class WxController extends Controller
     }
 
     // 获取用户基本信息
-
     public  function getAccessToken(){
         // 检测是否有缓存
         $key = 'access_token';
