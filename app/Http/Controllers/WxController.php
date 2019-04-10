@@ -76,6 +76,8 @@ class WxController extends Controller
                 echo $message;
             }
         }
+
+        echo 'success';
     }
 
     // 获取access_token
