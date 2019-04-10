@@ -39,7 +39,7 @@ class WxController extends Controller
             if($xml->MsgType == 'event'){
                 if($xml->Event == 'subscribe'){
                     // 查询当前openID数据库是否存在
-                    $res = WecharModel::where(['openid'=>$openid])->frist();
+                    $res = WecharModel::where(['openid'=>$openid])->first();
                     if($res){
                         // 已入库，消息回复
                         $message = "<xml>
