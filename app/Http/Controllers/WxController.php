@@ -133,15 +133,33 @@ class WxController extends Controller
         /**  2 post的数据 */
         $data = [
             'button' => [
+                // 一级菜单
                 [
-                    "type" => "click",
-                    "name" => "今日歌曲",
-                    "key" => "key_menu_001"
+                    "name" => "菜单",
+                    "sub_button"=> [
+                        [
+                            "type" => "view",
+                            "name" => "搜索",
+                            "url" => "http://www.soso.com/"
+                        ],
+                        [
+                            "type" => "pic_photo_or_album",
+                            "name" => "拍照或者相册发图",
+                            "key"  => "key_menu_001",
+                            "sub_button" =>[ ]
+                        ],
+                        [
+                            "type" => "location_select",
+                            "name" => "发送位置",
+                            "key" => "key_menu_002"
+                        ]
+                    ],
                 ],
 
+                // 顶级菜单
                 [
                     "type" => "view",
-                    "name" => "酷狗最新嗨曲详情",
+                    "name" => "哔哩哔哩最新推荐",
                     "url" => "http://www.bilibili.com"
                 ],
             ]
