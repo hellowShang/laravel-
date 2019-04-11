@@ -98,6 +98,7 @@ class WxController extends Controller
                             </xml>";
                 }
             }
+            return $message;
         }
     }
 
@@ -156,7 +157,7 @@ class WxController extends Controller
                         [
                             "type" => "scancode_waitmsg",
                             "name" => "扫码带提示",
-                            "key" => "key_menu_002", 
+                            "key" => "key_menu_002",
                             "sub_button" => [ ]
                         ]
                     ],
