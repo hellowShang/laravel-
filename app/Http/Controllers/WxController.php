@@ -127,7 +127,6 @@ class WxController extends Controller
     // 自定义菜单接口
     public function menu()
     {
-
         /**  1 请求路径接口*/
         $url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=".$this->getAccessToken();
 
@@ -143,7 +142,7 @@ class WxController extends Controller
                 [
                     "type" => "view",
                     "name" => "酷狗最新嗨曲详情",
-                    "url" => "www.bilibili.com"
+                    "url" => "http://www.bilibili.com"
                 ],
             ]
         ];
@@ -153,18 +152,19 @@ class WxController extends Controller
         $client = new Client();
         // 数组转化成json字符串
         $data = json_encode($data,JSON_UNESCAPED_UNICODE);
+        // dd($data);
         $response = $client->request('POST',$url,['body' => $data]);
 
         /** 4 接收响应回来的数据并处理 */
         $arr = json_decode($response->getBody(),true);
-         // dd($arr);
+        dd($arr);
         /** 5 判断 */
         if($arr['errcode'] > 0){
             // TODO 请求失败
-            echo '创建菜单成功';
+            echo '创建菜单失败';
         }else{
             // TODO 请求成功
-            echo '创建菜单失败';
+            echo '创建菜单成功';
         }
     }
 }
