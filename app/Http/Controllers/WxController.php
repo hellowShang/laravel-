@@ -175,7 +175,7 @@ class WxController extends Controller
 
         /** 4 接收响应回来的数据并处理 */
         $arr = json_decode($response->getBody(),true);
-        dd($arr);
+        // dd($arr);
         /** 5 判断 */
         if($arr['errcode'] > 0){
             // TODO 请求失败
