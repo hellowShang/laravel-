@@ -95,7 +95,7 @@ class WxController extends Controller
     }
 
     // 获取access_token
-    public  function getAccessToken(){
+    public function getAccessToken(){
         // 检测是否有缓存
         $key = 'access_token';
         $token = Redis::get($key);
@@ -127,8 +127,9 @@ class WxController extends Controller
     // 自定义菜单接口
     public function menu()
     {
+
         /**  1 请求路径接口*/
-        $url = " https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" . $this->getAccessToken();
+        $url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=".$this->getAccessToken();
 
         /**  2 post的数据 */
         $data = [
@@ -156,9 +157,9 @@ class WxController extends Controller
 
         /** 4 接收响应回来的数据并处理 */
         $arr = json_decode($response->getBody(),true);
-
+         // dd($arr);
         /** 5 判断 */
-        if($arr['errorcode'] > 0){
+        if($arr['errcode'] > 0){
             // TODO 请求失败
             echo '创建菜单成功';
         }else{
