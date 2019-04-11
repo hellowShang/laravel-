@@ -25,5 +25,5 @@ Route::post('/weixin/valid','WxController@wx');
 // 获取access_token
 Route::get('/wenxin/access_token','WxController@getAccessToken');
 
-// 获取用户的基本信息
-
+// 自定义菜单
+Route::any('/weixin/menu','WxController@menu');

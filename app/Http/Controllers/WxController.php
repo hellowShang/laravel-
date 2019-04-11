@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use App\Model\Wechar\WecharModel;
+use GuzzleHttp\Client;
+
 class WxController extends Controller
 {
     // 处理微信第一次接入
@@ -44,7 +46,7 @@ class WxController extends Controller
                             <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
                             <CreateTime>time()</CreateTime>
                             <MsgType><![CDATA[text]]></MsgType>
-                            <Content><![CDATA[欢迎回来".$userInfo['nickname']."]]></Content>
+                            <Content><![CDATA[欢迎回来，".$userInfo['nickname']."]]></Content>
                         </xml>";
                     }else{
                         // 首次关注，消息入库
@@ -80,7 +82,7 @@ class WxController extends Controller
         echo 'success';
     }
 
-    // 获取access_token
+    // 获取用户基本信息
     public function getUserInfo($openid){
         // 获取access_token
         $access_token = $this->getAccessToken();
@@ -92,7 +94,7 @@ class WxController extends Controller
         return $arr;
     }
 
-    // 获取用户基本信息
+    // 获取access_token
     public  function getAccessToken(){
         // 检测是否有缓存
         $key = 'access_token';
@@ -120,5 +122,48 @@ class WxController extends Controller
         }
         // 返回access_token
         return $token;
+    }
+
+    // 自定义菜单接口
+    public function menu()
+    {
+        /**  1 请求路径接口*/
+        $url = " https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" . $this->getAccessToken();
+
+        /**  2 post的数据 */
+        $data = [
+            'button' => [
+                [
+                    "type" => "click",
+                    "name" => "今日歌曲",
+                    "key" => "key_menu_001"
+                ],
+
+                [
+                    "type" => "view",
+                    "name" => "酷狗最新嗨曲详情",
+                    "url" => "www.bilibili.com"
+                ],
+            ]
+        ];
+
+        /** 3 发送请求*/
+        // 实例化第三方类库
+        $client = new Client();
+        // 数组转化成json字符串
+        $data = json_encode($data,JSON_UNESCAPED_UNICODE);
+        $response = $client->request('POST',$url,['body' => $data]);
+
+        /** 4 接收响应回来的数据并处理 */
+        $arr = json_decode($response->getBody(),true);
+
+        /** 5 判断 */
+        if($arr['errorcode'] > 0){
+            // TODO 请求失败
+            echo '创建菜单成功';
+        }else{
+            // TODO 请求成功
+            echo '创建菜单失败';
+        }
     }
 }
