@@ -162,6 +162,13 @@ class WxController extends Controller
                     "name" => "哔哩哔哩最新推荐",
                     "url" => "http://www.bilibili.com"
                 ],
+
+                // 顶级菜单
+                [
+                    "type" => "click",
+                    "name" => "酷狗新歌推荐",
+                    "key" => "key_menu_003"
+                ],
             ]
         ];
 
