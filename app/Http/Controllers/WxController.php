@@ -135,7 +135,7 @@ class WxController extends Controller
             'button' => [
                 // 第一个一级菜单
                 [
-                    "name" => "菜单",
+                    "name" => "生活",
                     "sub_button"=> [
                         [
                             "type" => "view",
