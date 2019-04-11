@@ -33,51 +33,14 @@ class WxController extends Controller
         $openid = $xml->FromUserName;
         // 获取用户基本信息
         $userInfo = $this-> getUserInfo($openid);
-        // var_dump($userInfo);die;
-        if($userInfo){
-            if($xml->MsgType == 'event' && $xml->Event == 'subscribe'){
-                    // 查询当前openID数据库是否存在
-                    $res = WecharModel::where(['openid'=>$openid])->first();
-                    // var_dump($res);die;
-                    if($res){
-                        // 已入库，消息回复
-                        $message = "<xml>
-                            <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
-                            <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
-                            <CreateTime>time()</CreateTime>
-                            <MsgType><![CDATA[text]]></MsgType>
-                            <Content><![CDATA[欢迎回来，".$userInfo['nickname']."]]></Content>
-                        </xml>";
-                    }else{
-                        // 首次关注，消息入库
-                        $info = [
-                            'subscribe' =>$userInfo['subscribe'],
-                            'openid' =>$userInfo['openid'],
-                            'nickname' =>$userInfo['nickname'],
-                            'sex' =>$userInfo['sex'],
-                            'city' =>$userInfo['city'],
-                            'province' =>$userInfo['province'],
-                            'country' =>$userInfo['country'],
-                            'headimgurl' =>$userInfo['headimgurl'],
-                            'subscribe_time' =>$userInfo['subscribe_time'],
-                        ];
 
-                        // 数据入库
-                        $res = WecharModel::insert($info);
-                        if($res){
-                            // 消息回复
-                            $message = "<xml>
-                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
-                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
-                                <CreateTime>time()</CreateTime>
-                                <MsgType><![CDATA[text]]></MsgType>
-                                <Content><![CDATA[你好".$userInfo['nickname']."，欢迎关注]]></Content>
-                            </xml>";
-                        }
-                    }
-                echo $message;
-            }
+        // 用户消息入库
+        if($userInfo){
+            $message = $this-> userInfoAdd($xml,$openid,$userInfo);
+            echo $message;
         }
+
+        // 回复用户消息、素材下载
 
         echo 'success';
     }
@@ -94,15 +57,57 @@ class WxController extends Controller
         return $arr;
     }
 
+    // 用户基本消息入库
+    public  function userInfoAdd($xml,$openid,$userInfo){
+        if($xml->MsgType == 'event' && $xml->Event == 'subscribe') {
+            // 查询当前openID数据库是否存在
+            $res = WecharModel::where(['openid' => $openid])->first();
+            if ($res) {
+                // 已入库，消息回复
+                $message = "<xml>
+                            <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                            <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                            <CreateTime>time()</CreateTime>
+                            <MsgType><![CDATA[text]]></MsgType>
+                            <Content><![CDATA[欢迎回来，" . $userInfo['nickname'] . "]]></Content>
+                        </xml>";
+            } else {
+                // 首次关注，消息入库
+                $info = [
+                    'subscribe' => $userInfo['subscribe'],
+                    'openid' => $userInfo['openid'],
+                    'nickname' => $userInfo['nickname'],
+                    'sex' => $userInfo['sex'],
+                    'city' => $userInfo['city'],
+                    'province' => $userInfo['province'],
+                    'country' => $userInfo['country'],
+                    'headimgurl' => $userInfo['headimgurl'],
+                    'subscribe_time' => $userInfo['subscribe_time'],
+                ];
+
+                // 数据入库
+                $res = WecharModel::insert($info);
+                if ($res) {
+                    // 消息回复
+                    $message = "<xml>
+                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                                <CreateTime>time()</CreateTime>
+                                <MsgType><![CDATA[text]]></MsgType>
+                                <Content><![CDATA[你好" . $userInfo['nickname'] . "，欢迎关注]]></Content>
+                            </xml>";
+                }
+            }
+        }
+    }
+
     // 获取access_token
     public function getAccessToken(){
         // 检测是否有缓存
         $key = 'access_token';
         $token = Redis::get($key);
         if($token){
-//            echo 111;
         }else{
-//            echo 222;
             // 接口调用请求说明
             $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".env('WX_APPID')."&secret=".env('WX_SECRET');
             // echo $url;
@@ -149,9 +154,10 @@ class WxController extends Controller
                             "sub_button" =>[ ]
                         ],
                         [
-                            "type" => "location_select",
-                            "name" => "发送位置",
-                            "key" => "key_menu_002"
+                            "type" => "scancode_waitmsg",
+                            "name" => "扫码带提示",
+                            "key" => "key_menu_002", 
+                            "sub_button" => [ ]
                         ]
                     ],
                 ],
