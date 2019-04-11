@@ -133,7 +133,7 @@ class WxController extends Controller
         /**  2 post的数据 */
         $data = [
             'button' => [
-                // 一级菜单
+                // 第一个一级菜单
                 [
                     "name" => "菜单",
                     "sub_button"=> [
@@ -156,17 +156,17 @@ class WxController extends Controller
                     ],
                 ],
 
-                // 顶级菜单
+                // 第二个顶级菜单
                 [
                     "type" => "view",
-                    "name" => "哔哩哔哩最新推荐",
+                    "name" => "哔哩哔哩",
                     "url" => "http://www.bilibili.com"
                 ],
 
-                // 顶级菜单
+                // 第三个顶级菜单
                 [
                     "type" => "click",
-                    "name" => "酷狗新歌推荐",
+                    "name" => "酷狗新歌",
                     "key" => "key_menu_003"
                 ],
             ]
