@@ -100,13 +100,13 @@ class WxController extends Controller
                             </xml>";
                 }
             }
-        }else if($xml->MsgType == 'text'){
+        }else if($xml->MsgType == 'text'){      // 用户消息回复
             $message = "<xml>
                             <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                             <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
                             <CreateTime>time()</CreateTime>
                             <MsgType><![CDATA[text]]></MsgType>
-                            <Content><![CDATA[我杨天雯要日天]]></Content>
+                            <Content><![CDATA[我杨天雯，只需五元，你买不到吃亏，买不到上当]]></Content>
                         </xml>";
         }
         return $message;
