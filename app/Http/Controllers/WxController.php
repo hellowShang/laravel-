@@ -41,6 +41,8 @@ class WxController extends Controller
         }
 
         // 回复用户消息、素材下载
+        $this-> media($xml,$openid);
+
 
         echo 'success';
     }
@@ -57,7 +59,7 @@ class WxController extends Controller
         return $arr;
     }
 
-    // 用户基本消息入库
+    // 用户基本消息入库，消息回复
     public  function userInfoAdd($xml,$openid,$userInfo){
         if($xml->MsgType == 'event' && $xml->Event == 'subscribe') {
             // 查询当前openID数据库是否存在
@@ -98,8 +100,16 @@ class WxController extends Controller
                             </xml>";
                 }
             }
-            return $message;
+        }else if($xml->MsgType == 'text'){
+            $message = "<xml>
+                            <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                            <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                            <CreateTime>time()</CreateTime>
+                            <MsgType><![CDATA[text]]></MsgType>
+                            <Content><![CDATA[我杨天雯要日天]]></Content>
+                        </xml>";
         }
+        return $message;
     }
 
     // 获取access_token
@@ -197,6 +207,20 @@ class WxController extends Controller
         }else{
             // TODO 请求成功
             echo '创建菜单成功';
+        }
+    }
+
+    //素材下载
+    public function media($xml,$openid){
+        // 判断类型
+        if($xml->MsgType == 'image'){
+            $mdeiaid = $xml->MediaId;
+            $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=".$this->getAccessToken()."&media_id=".$mdeiaid;
+            $response = file_get_contents($url);
+            var_dump($response);die;
+
+        }else if($xml->MsgType == 'voice'){
+
         }
     }
 }
