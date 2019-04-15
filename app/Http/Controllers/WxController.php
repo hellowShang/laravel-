@@ -43,7 +43,7 @@ class WxController extends Controller
             echo $message;
         }
 
-        // 回复用户消息、素材下载
+        // 用户消息、素材下载
         $this-> media($xml,$openid);
 
     }
@@ -238,6 +238,11 @@ class WxController extends Controller
                $new_file_name = substr(md5(time().mt_rand(11111,99999)),5,10).".MP3";
                // 文件路径+名字
                $path = 'wechar/voice/'.$new_file_name;
+           }else if($xml->MsgType == 'video'){
+                // 文件新名字
+               $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
+               // 文件路径+名字
+               $path = 'wechar/video/'.$new_file_name;
            }
            // 存放文件  put(路径,文件)
            $res = Storage::put($path,$response->getBody());
