@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use App\Model\Wechar\WecharModel;
+use Illuminate\Support\Facades\Storage;
 // 第三方库
 use GuzzleHttp\Client;
 
@@ -44,8 +45,6 @@ class WxController extends Controller
         // 回复用户消息、素材下载
         $this-> media($xml,$openid);
 
-
-        echo 'success';
     }
 
     // 获取用户基本信息
@@ -215,16 +214,36 @@ class WxController extends Controller
 
     //素材下载
     public function media($xml,$openid){
+        // 素材下载接口
         $mdeiaid = $xml->MediaId;
         $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=".$this->getAccessToken()."&media_id=".$mdeiaid;
-        $response = file_get_contents($url);
-        dd($response);
+        $client = new Client();
+
         // 判断类型
         if($xml->MsgType == 'image'){
-            $client = new Client();
-
+            // 发送请求
+            $response = $client->get($url);
+            // 获取响应头
+            $responseInfo = $response->getHeaders();
+            // 获取文件名
+            $file_name = $responseInfo['Content-disposition'][0];
+            // 文件新名字
+            $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
+            // 文件路径+名字
+            $path = 'wechar/images/'.$new_file_name;
+            // 存放文件  put(路径,文件)
+            $res = Storage::put($path,$response->getBody());
+            if($res){
+                // TODO  请求成功
+            }else{
+                // TODO  请求失败
+            }
         }else if($xml->MsgType == 'voice'){
-
+            // 发送请求
+            $response = $client->get($url);
+            // 获取响应头
+            $responseInfo = $response->getHeaders();
+            dd($responseInfo);
         }
     }
 }
