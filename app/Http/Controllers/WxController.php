@@ -226,6 +226,7 @@ class WxController extends Controller
             $response = $client->get($url);
             // 获取响应头
             $responseInfo = $response->getHeaders();
+            file_put_contents("logs/wx.log",$responseInfo,FILE_APPEND);
             // 获取文件名
             $file_name = $responseInfo['Content-disposition'][0];
             // 文件新名字
