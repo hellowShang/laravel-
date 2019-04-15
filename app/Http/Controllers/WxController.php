@@ -101,6 +101,7 @@ class WxController extends Controller
                 }
             }
         }else if($xml->MsgType == 'text'){      // 用户消息回复
+
             $message = "<xml>
                             <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                             <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
@@ -243,7 +244,19 @@ class WxController extends Controller
             $response = $client->get($url);
             // 获取响应头
             $responseInfo = $response->getHeaders();
-            dd($responseInfo);
+            // 获取文件名
+            $file_name = $responseInfo['Content-disposition'][0];
+            // 文件新名字
+            $new_file_name = substr(md5(time().mt_rand(11111,99999)),5,10).".MP3";
+            // 文件路径+名字
+            $path = 'wechar/voice/'.$new_file_name;
+            // 存放文件  put(路径,文件)
+            $res = Storage::put($path,$response->getBody());
+            if($res){
+                // TODO  请求成功
+            }else{
+                // TODO  请求失败
+            }
         }
     }
 }
