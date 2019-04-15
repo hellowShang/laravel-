@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use App\Model\Wechar\WecharModel;
+// 第三方库
 use GuzzleHttp\Client;
 
 class WxController extends Controller
@@ -108,6 +109,8 @@ class WxController extends Controller
                             <MsgType><![CDATA[text]]></MsgType>
                             <Content><![CDATA[我杨天雯，只需五元，你买不到吃亏，买不到上当]]></Content>
                         </xml>";
+        }else{
+            $message = 'success';
         }
         return $message;
     }
@@ -212,12 +215,13 @@ class WxController extends Controller
 
     //素材下载
     public function media($xml,$openid){
+        $mdeiaid = $xml->MediaId;
+        $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=".$this->getAccessToken()."&media_id=".$mdeiaid;
+        $response = file_get_contents($url);
+        dd($response);
         // 判断类型
         if($xml->MsgType == 'image'){
-            $mdeiaid = $xml->MediaId;
-            $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=".$this->getAccessToken()."&media_id=".$mdeiaid;
-            $response = file_get_contents($url);
-            var_dump($response);die;
+            $client = new Client();
 
         }else if($xml->MsgType == 'voice'){
 
