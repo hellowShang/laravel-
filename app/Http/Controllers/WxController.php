@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use App\Model\Wechar\WecharModel;
+use App\Model\Wechar\MediaModel;
 use Illuminate\Support\Facades\Storage;
 // 第三方库
 use GuzzleHttp\Client;
@@ -101,14 +102,24 @@ class WxController extends Controller
                 }
             }
         }else if($xml->MsgType == 'text'){      // 用户消息回复
-
-            $message = "<xml>
+            $info = [
+                'openid' => $openid,
+                'mediaid' => '',
+                'type' => $xml->MsgType,
+                'content' => $xml->Content,
+                'create_time' => time()
+            ];
+            $res = MediaModel::insert($info);
+            if($res){
+                $message = "<xml>
                             <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                             <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
                             <CreateTime>time()</CreateTime>
                             <MsgType><![CDATA[text]]></MsgType>
                             <Content><![CDATA[我杨天雯，只需五元，你买不到吃亏，买不到上当]]></Content>
                         </xml>";
+            }
+
         }else{
             $message = 'success';
         }
@@ -243,6 +254,14 @@ class WxController extends Controller
         $res = Storage::put($path,$response->getBody());
         if($res){
             // TODO  请求成功
+            $info = [
+                'openid' => $openid,
+                'mediaid' => $mdeiaid,
+                'type' => $xml->MsgType,
+                'url' => "storage/app/".$path,
+                'create_time' => time()
+            ];
+            MediaModel::insert($info);
         }else{
             // TODO  请求失败
         }
