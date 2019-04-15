@@ -207,29 +207,7 @@ class WxController extends Controller
 
     //素材下载
     public function media($xml,$openid){
-        // 素材下载接口
-        $mdeiaid = $xml->MediaId;
-        $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=".$this->getAccessToken()."&media_id=".$mdeiaid;
-        $client = new Client();
-        // 发送请求
-        $response = $client->get($url);
-        // 获取响应头
-        $responseInfo = $response->getHeaders();
-        // 获取文件名
-        $file_name = $responseInfo['Content-disposition'][0];
-
-        // 判断类型
-        if($xml->MsgType == 'image'){
-            // 文件新名字
-            $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
-            // 文件路径+名字
-            $path = 'wechar/images/'.$new_file_name;
-        }else if($xml->MsgType == 'voice'){
-            // 文件新名字
-            $new_file_name = substr(md5(time().mt_rand(11111,99999)),5,10).".MP3";
-            // 文件路径+名字
-            $path = 'wechar/voice/'.$new_file_name;
-        }else if($xml->MsgType == 'text') {      // 用户消息回复
+       if($xml->MsgType == 'text') {
             $info = [
                 'openid' => $openid,
                 'type' => $xml->MsgType,
@@ -237,24 +215,45 @@ class WxController extends Controller
                 'create_time' => $xml->CreateTime
             ];
            MediaModel::insert($info);
-        }
+        }else{
+           // 素材下载接口
+           $mdeiaid = $xml->MediaId;
+           $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=".$this->getAccessToken()."&media_id=".$mdeiaid;
+           $client = new Client();
+           // 发送请求
+           $response = $client->get($url);
+           // 获取响应头
+           $responseInfo = $response->getHeaders();
+           // 获取文件名
+           $file_name = $responseInfo['Content-disposition'][0];
 
-        if($xml->MsgType != 'text'){
-            // 存放文件  put(路径,文件)
-            $res = Storage::put($path,$response->getBody());
-            if($res){
-                // TODO  请求成功
-                $info = [
-                    'openid' => $openid,
-                    'mediaid' => $mdeiaid,
-                    'type' => $xml->MsgType,
-                    'url' => "storage/app/".$path,
-                    'create_time' => $xml->CreateTime
-                ];
-                MediaModel::insert($info);
-            }else{
-                // TODO  请求失败
-            }
-        }
+           // 判断类型
+           if($xml->MsgType == 'image'){
+               // 文件新名字
+               $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
+               // 文件路径+名字
+               $path = 'wechar/images/'.$new_file_name;
+           }else if($xml->MsgType == 'voice'){
+               // 文件新名字
+               $new_file_name = substr(md5(time().mt_rand(11111,99999)),5,10).".MP3";
+               // 文件路径+名字
+               $path = 'wechar/voice/'.$new_file_name;
+           }
+           // 存放文件  put(路径,文件)
+           $res = Storage::put($path,$response->getBody());
+           if($res){
+               // TODO  请求成功
+               $info = [
+                   'openid' => $openid,
+                   'mediaid' => $mdeiaid,
+                   'type' => $xml->MsgType,
+                   'url' => "storage/app/".$path,
+                   'create_time' => $xml->CreateTime
+               ];
+               MediaModel::insert($info);
+           }else{
+               // TODO  请求失败
+           }
+       }
     }
 }
