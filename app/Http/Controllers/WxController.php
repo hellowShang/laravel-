@@ -101,25 +101,6 @@ class WxController extends Controller
                             </xml>";
                 }
             }
-        }else if($xml->MsgType == 'text'){      // 用户消息回复
-            $info = [
-                'openid' => $openid,
-                'mediaid' => '',
-                'type' => $xml->MsgType,
-                'content' => $xml->Content,
-                'create_time' => time()
-            ];
-            $res = MediaModel::insert($info);
-            if($res){
-                $message = "<xml>
-                            <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
-                            <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
-                            <CreateTime>time()</CreateTime>
-                            <MsgType><![CDATA[text]]></MsgType>
-                            <Content><![CDATA[我杨天雯，只需五元，你买不到吃亏，买不到上当]]></Content>
-                        </xml>";
-            }
-
         }else{
             $message = 'success';
         }
@@ -238,7 +219,15 @@ class WxController extends Controller
         $file_name = $responseInfo['Content-disposition'][0];
 
         // 判断类型
-        if($xml->MsgType == 'image'){
+        if($xml->MsgType == 'text'){
+            $info = [
+                'openid' => $openid,
+                'type' => $xml->MsgType,
+                'content' => $xml->Content,
+                'create_time' => $xml->CreateTime
+            ];
+            MediaModel::insert($info);die;
+        }else if($xml->MsgType == 'image'){
             // 文件新名字
             $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
             // 文件路径+名字
@@ -259,7 +248,7 @@ class WxController extends Controller
                 'mediaid' => $mdeiaid,
                 'type' => $xml->MsgType,
                 'url' => "storage/app/".$path,
-                'create_time' => time()
+                'create_time' => $xml->CreateTime
             ];
             MediaModel::insert($info);
         }else{
