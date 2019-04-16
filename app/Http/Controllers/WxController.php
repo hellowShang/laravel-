@@ -62,6 +62,7 @@ class WxController extends Controller
 
     // 用户基本消息入库，消息回复
     public  function userInfoAdd($xml,$openid,$userInfo){
+        $time = time();
         if($xml->MsgType == 'event' && $xml->Event == 'subscribe') {
             // 查询当前openID数据库是否存在
             $res = WecharModel::where(['openid' => $openid])->first();
@@ -70,7 +71,7 @@ class WxController extends Controller
                 $message = "<xml>
                             <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                             <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
-                            <CreateTime>time()</CreateTime>
+                            <CreateTime>$time</CreateTime>
                             <MsgType><![CDATA[text]]></MsgType>
                             <Content><![CDATA[欢迎回来，" . $userInfo['nickname'] . "]]></Content>
                         </xml>";
@@ -95,9 +96,44 @@ class WxController extends Controller
                     $message = "<xml>
                                 <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                                 <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
-                                <CreateTime>time()</CreateTime>
+                                <CreateTime>$time</CreateTime>
                                 <MsgType><![CDATA[text]]></MsgType>
                                 <Content><![CDATA[你好" . $userInfo['nickname'] . "，欢迎关注]]></Content>
+                            </xml>";
+                }
+            }
+            // 消息回复、天气回复
+        }else if($xml->MsgType == 'text'){
+            if(strpos($xml->Content,'+')){
+                $city = explode('+',$xml->Content)[0];
+                $weather  = $this->weather($city);
+                //echo "<pre>";
+                //var_dump($weather['HeWeather6'][0][]);
+                //dd($weather);
+                // 判断城市输入是否正确
+                if($weather['HeWeather6'][0]['status'] == 'ok'){
+                    $tmp = $weather['HeWeather6'][0]['now']['tmp'];                    // 温度
+                    $wind_dir = $weather['HeWeather6'][0]['now']['wind_dir'];         // 风向
+                    $wind_sc = $weather['HeWeather6'][0]['now']['wind_sc'];           // 风力
+                    $hum = $weather['HeWeather6'][0]['now']['hum'];                    // 湿度
+                    $cond_txt = $weather['HeWeather6'][0]['now']['cond_txt'];         // 天气
+
+                    $noweacher = "天气：".$cond_txt."\n"."气温：".$tmp."\n"."风向：".$wind_dir."\n"."风力：".$wind_sc."\n"."湿度：".$hum."\n";
+
+                    $message = "<xml>
+                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                                <CreateTime>$time</CreateTime>
+                                <MsgType><![CDATA[text]]></MsgType>
+                                <Content><![CDATA[".$noweacher."]]></Content>
+                            </xml>";
+                }else{
+                    $message = "<xml>
+                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                                <CreateTime>$time</CreateTime>
+                                <MsgType><![CDATA[text]]></MsgType>
+                                <Content><![CDATA[你输入的城市有误，请重新输入]]></Content>
                             </xml>";
                 }
             }
@@ -207,15 +243,7 @@ class WxController extends Controller
 
     //素材下载
     public function media($xml,$openid){
-       if($xml->MsgType == 'text') {
-            $info = [
-                'openid' => $openid,
-                'type' => $xml->MsgType,
-                'content' => $xml->Content,
-                'create_time' => $xml->CreateTime
-            ];
-           MediaModel::insert($info);
-        }else{
+       if($xml->MsgType != 'text') {
            // 素材下载接口
            $mdeiaid = $xml->MediaId;
            $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=".$this->getAccessToken()."&media_id=".$mdeiaid;
@@ -260,5 +288,12 @@ class WxController extends Controller
                // TODO  请求失败
            }
        }
+    }
+
+    // 用户消息回复、天气回复
+    public function weather($city){
+        $url = "https://free-api.heweather.net/s6/weather/now?key=46229c21f97440298467a9f78ca63710&location=".$city;
+        $weather = json_decode(file_get_contents($url),true);
+        return $weather;
     }
 }
