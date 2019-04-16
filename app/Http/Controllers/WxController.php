@@ -42,7 +42,6 @@ class WxController extends Controller
                 // 信息返回并输出
                 $message = $this-> userInfoAdd($xml,$openid,$userInfo);
             }
-
         }else{
             if($xml->MsgType == 'text'){
                 // 消息回复、天气回复
@@ -322,7 +321,11 @@ class WxController extends Controller
 
     // 消息群发
     public function massTexting(){
-        WecharModel::where('sub_status',1)->get();
+        $arr = WecharModel::where(['sub_status'=> 1])->get()->toArray();
+        $openid = array_column($arr,'openid');
+        $content = '今天周二，吃米饭';
+        $response = $this-> sendText($openid,$content);
+        var_dump($response);
     }
 
     //消息群发接口调用

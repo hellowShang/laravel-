@@ -27,3 +27,6 @@ Route::get('/wenxin/access_token','WxController@getAccessToken');
 
 // 自定义菜单
 Route::get('/menu','WxController@menu');
+
+
+Route::get('/send','WxController@massTexting');
