@@ -34,17 +34,26 @@ class WxController extends Controller
         $xml = simplexml_load_string($content);
         // 获取openID
         $openid = $xml->FromUserName;
-        // 获取用户基本信息
-        $userInfo = $this-> getUserInfo($openid);
+        if($xml->MsgType == 'event') {
+            // 获取用户基本信息
+            $userInfo = $this-> getUserInfo($openid);
+            // 用户消息入库
+            if($userInfo){
+                // 信息返回并输出
+                $message = $this-> userInfoAdd($xml,$openid,$userInfo);
+            }
 
-        // 用户消息入库
-        if($userInfo){
-            // 信息返回并输出
-            $message = $this-> userInfoAdd($xml,$openid,$userInfo);
-            echo $message;
+        }else{
+            if($xml->MsgType == 'text'){
+                // 消息回复、天气回复
+                $message = $this->weacherMessage($xml,$time);
+            }else{
+                // 用户消息、素材下载
+                $this-> media($xml,$openid);
+                echo 'success';die;
+            }
         }
-
-
+        echo $message;
 
     }
 
@@ -61,90 +70,59 @@ class WxController extends Controller
     }
 
     // 用户基本消息入库，消息回复
-    public  function userInfoAdd($xml,$openid,$userInfo)
-    {
+    public  function userInfoAdd($xml,$openid,$userInfo){
         $time = time();
-        if ($xml->MsgType == 'event') {
+        if($xml->Event == 'subscribe'){
+            // 查询当前openID数据库是否存在
+            $arr = WecharModel::where(['openid' => $openid])->first();
+            if ($arr) {
 
-            // 关注
-            if ($xml->Event == 'subscribe') {
-                // 查询当前openID数据库是否存在
-                $res = WecharModel::where(['openid' => $openid])->first();
-                if ($res) {
-                    // 已入库，消息回复
-                    $message = "<xml>
+                // 检测是否取消关注，如取消则修改
+                if($arr['sub_status'] == 0){
+                    WecharModel::where(['openid' => $openid])->update(['sub_status' => 1]);
+                }
+                // 已入库，消息回复
+                $message = "<xml>
                             <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                             <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
                             <CreateTime>$time</CreateTime>
                             <MsgType><![CDATA[text]]></MsgType>
-                            <Content><![CDATA[欢迎回来，" . $userInfo['nickname'] . "]]></Content>
+                            <Content><![CDATA[欢迎回来，" . $arr['nickname'] . "]]></Content>
                         </xml>";
-                } else {
-                    // 首次关注，消息入库
-                    $info = [
-                        'sub_status' => 1,
-                        'openid' => $userInfo['openid'],
-                        'nickname' => $userInfo['nickname'],
-                        'sex' => $userInfo['sex'],
-                        'city' => $userInfo['city'],
-                        'province' => $userInfo['province'],
-                        'country' => $userInfo['country'],
-                        'headimgurl' => $userInfo['headimgurl'],
-                        'subscribe_time' => $userInfo['subscribe_time'],
-                    ];
+            } else {
+                // 首次关注，消息入库
+                $info = [
+                    'sub_status' => 1,
+                    'openid' => $userInfo['openid'],
+                    'nickname' => $userInfo['nickname'],
+                    'sex' => $userInfo['sex'],
+                    'city' => $userInfo['city'],
+                    'province' => $userInfo['province'],
+                    'country' => $userInfo['country'],
+                    'headimgurl' => $userInfo['headimgurl'],
+                    'subscribe_time' => $userInfo['subscribe_time'],
+                ];
 
-                    // 数据入库
-                    $res = WecharModel::insert($info);
-                    if ($res) {
-                        // 消息回复
-                        $message = "<xml>
+                // 数据入库
+                $res = WecharModel::insert($info);
+                if ($res) {
+                    // 消息回复
+                    $message = "<xml>
                                 <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                                 <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
                                 <CreateTime>$time</CreateTime>
                                 <MsgType><![CDATA[text]]></MsgType>
                                 <Content><![CDATA[你好" . $userInfo['nickname'] . "，欢迎关注]]></Content>
                             </xml>";
-                    }
                 }
-                // 取消关注
-            } else if ($xml->Event == 'unsubscribe') {
-                // 用户状态修改为未关注
-                WecharModel::where('openid', $openid)->update(['sub_status' => 0]);
-
-            } else {
-                $message = 'success';
             }
-            return $message;
+        }else if($xml->Event == 'unsubscribe'){
 
-            // 判断类型是图片、语音还是视频
-        }else if($xml->MsgType == 'image'){
-            // 图片文件新名字
-            $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
-            // 图片文件路径+名字
-            $path = 'wechar/images/'.$new_file_name;
-            // 素材下载
-            $this-> media($xml,$openid,$path);
-        }else if($xml->MsgType == 'voice'){
-            // 语音文件新名字
-            $new_file_name = substr(md5(time().mt_rand(11111,99999)),5,10).".MP3";
-            // 语音文件路径+名字
-            $path = 'wechar/voice/'.$new_file_name;
-            // 素材下载
-            $this-> media($xml,$openid,$path);
-        }else if($xml->MsgType == 'video'){
-            // 视频文件新名字
-            $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
-            // 视频文件路径+名字
-            $path = 'wechar/video/'.$new_file_name;
-            // 素材下载
-            $this-> media($xml,$openid,$path);
-        }else if($xml->MsgType == 'text'){
-            // 判断是否是城市+天气格式
-            if(strpos($xml->Content,'+')){
-                // 消息回复、天气回复
-                $message = $this->weacherMessage($xml,$time);
-            }
+            // 用户状态修改为未关注
+            WecharModel::where('openid',$openid)->update(['sub_status' => 0]);
+            $message = 'success';
         }
+        return $message;
     }
 
     // 获取access_token
@@ -246,7 +224,7 @@ class WxController extends Controller
     }
 
     //素材下载
-    public function media($xml,$openid,$path){
+    public function media($xml,$openid){
            // 素材下载接口
            $mdeiaid = $xml->MediaId;
            $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=".$this->getAccessToken()."&media_id=".$mdeiaid;
@@ -258,6 +236,23 @@ class WxController extends Controller
            // 获取文件名
            $file_name = $responseInfo['Content-disposition'][0];
 
+           // 判断类型是图片、语音还是视频
+           if($xml->MsgType == 'image'){
+               // 图片文件新名字
+               $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
+               // 图片文件路径+名字
+               $path = 'wechar/images/'.$new_file_name;
+           }else if($xml->MsgType == 'voice'){
+               // 语音文件新名字
+               $new_file_name = substr(md5(time().mt_rand(11111,99999)),5,10).".MP3";
+               // 语音文件路径+名字
+               $path = 'wechar/voice/'.$new_file_name;
+           }else if($xml->MsgType == 'video'){
+                // 视频文件新名字
+               $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
+               // 视频文件路径+名字
+               $path = 'wechar/video/'.$new_file_name;
+           }
            // 存放文件  put(路径,文件)
            $res = Storage::put($path,$response->getBody());
            if($res){
@@ -286,38 +281,42 @@ class WxController extends Controller
 
     // 天气消息回复
     public function weacherMessage($xml,$time){
-        // 获取城市名称
-        $city = explode('+',$xml->Content)[0];
-        // 获取该城市的天气状况数据
-        $weather  = $this->weather($city);
+        // 判断是否是城市+天气格式
+        if(strpos($xml->Content,'+')){
+            // 获取城市名称
+            $city = explode('+',$xml->Content)[0];
+            // 获取该城市的天气状况数据
+            $weather  = $this->weather($city);
 
-        // 判断城市输入是否正确
-        if($weather['HeWeather6'][0]['status'] == 'ok'){
-            $tmp = $weather['HeWeather6'][0]['now']['tmp'];                    // 温度
-            $wind_dir = $weather['HeWeather6'][0]['now']['wind_dir'];         // 风向
-            $wind_sc = $weather['HeWeather6'][0]['now']['wind_sc'];           // 风力
-            $hum = $weather['HeWeather6'][0]['now']['hum'];                    // 湿度
-            $cond_txt = $weather['HeWeather6'][0]['now']['cond_txt'];         // 天气
+            // 判断城市输入是否正确
+            if($weather['HeWeather6'][0]['status'] == 'ok'){
+                $tmp = $weather['HeWeather6'][0]['now']['tmp'];                    // 温度
+                $wind_dir = $weather['HeWeather6'][0]['now']['wind_dir'];         // 风向
+                $wind_sc = $weather['HeWeather6'][0]['now']['wind_sc'];           // 风力
+                $hum = $weather['HeWeather6'][0]['now']['hum'];                    // 湿度
+                $cond_txt = $weather['HeWeather6'][0]['now']['cond_txt'];         // 天气
 
-            // 数据拼接
-            $noweacher = "天气：".$cond_txt."\n"."气温：".$tmp."\n"."风向：".$wind_dir."\n"."风力：".$wind_sc."\n"."湿度：".$hum."\n";
+                // 数据拼接
+                $noweacher = "天气：".$cond_txt."\n"."气温：".$tmp."\n"."风向：".$wind_dir."\n"."风力：".$wind_sc."\n"."湿度：".$hum."\n";
 
-            // 返回xml格式
-            $message = "<xml>
+                // 返回xml格式
+                $message = "<xml>
                                 <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                                 <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
                                 <CreateTime>$time</CreateTime>
                                 <MsgType><![CDATA[text]]></MsgType>
                                 <Content><![CDATA[".$noweacher."]]></Content>
                             </xml>";
-        }else{
-            $message = "<xml>
+            }else{
+                $message = "<xml>
                                 <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                                 <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
                                 <CreateTime>$time</CreateTime>
                                 <MsgType><![CDATA[text]]></MsgType>
                                 <Content><![CDATA[你输入的城市有误，请重新输入]]></Content>
                             </xml>";
+            }
+            return $message;
         }
     }
 
