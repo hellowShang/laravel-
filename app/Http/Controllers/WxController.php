@@ -39,6 +39,7 @@ class WxController extends Controller
 
         // 用户消息入库
         if($userInfo){
+            // 信息返回并输出
             $message = $this-> userInfoAdd($xml,$openid,$userInfo);
             echo $message;
         }
@@ -104,12 +105,13 @@ class WxController extends Controller
             }
             // 消息回复、天气回复
         }else if($xml->MsgType == 'text'){
+            // 判断是否是城市+天气格式
             if(strpos($xml->Content,'+')){
+                // 获取城市名称
                 $city = explode('+',$xml->Content)[0];
+                // 获取该城市的天气状况数据
                 $weather  = $this->weather($city);
-                //echo "<pre>";
-                //var_dump($weather['HeWeather6'][0][]);
-                //dd($weather);
+
                 // 判断城市输入是否正确
                 if($weather['HeWeather6'][0]['status'] == 'ok'){
                     $tmp = $weather['HeWeather6'][0]['now']['tmp'];                    // 温度
@@ -118,8 +120,10 @@ class WxController extends Controller
                     $hum = $weather['HeWeather6'][0]['now']['hum'];                    // 湿度
                     $cond_txt = $weather['HeWeather6'][0]['now']['cond_txt'];         // 天气
 
+                    // 数据拼接
                     $noweacher = "天气：".$cond_txt."\n"."气温：".$tmp."\n"."风向：".$wind_dir."\n"."风力：".$wind_sc."\n"."湿度：".$hum."\n";
 
+                    // 返回xml格式
                     $message = "<xml>
                                 <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                                 <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
@@ -255,21 +259,21 @@ class WxController extends Controller
            // 获取文件名
            $file_name = $responseInfo['Content-disposition'][0];
 
-           // 判断类型
+           // 判断类型是图片、语音还是视频
            if($xml->MsgType == 'image'){
-               // 文件新名字
+               // 图片文件新名字
                $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
-               // 文件路径+名字
+               // 图片文件路径+名字
                $path = 'wechar/images/'.$new_file_name;
            }else if($xml->MsgType == 'voice'){
-               // 文件新名字
+               // 语音文件新名字
                $new_file_name = substr(md5(time().mt_rand(11111,99999)),5,10).".MP3";
-               // 文件路径+名字
+               // 语音文件路径+名字
                $path = 'wechar/voice/'.$new_file_name;
            }else if($xml->MsgType == 'video'){
-                // 文件新名字
+                // 视频文件新名字
                $new_file_name = substr(md5(time().mt_rand(11111,99999)),10,5).rtrim(substr($file_name,-10),'"');
-               // 文件路径+名字
+               // 视频文件路径+名字
                $path = 'wechar/video/'.$new_file_name;
            }
            // 存放文件  put(路径,文件)
@@ -292,7 +296,9 @@ class WxController extends Controller
 
     // 用户消息回复、天气回复
     public function weather($city){
+        // 调用天气接口
         $url = "https://free-api.heweather.net/s6/weather/now?key=46229c21f97440298467a9f78ca63710&location=".$city;
+        // 请求并转为数组
         $weather = json_decode(file_get_contents($url),true);
         return $weather;
     }
