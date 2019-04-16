@@ -325,7 +325,7 @@ class WxController extends Controller
         $openid = array_column($arr,'openid');
         $content = '今天周二，吃米饭';
         $response = $this-> sendText($openid,$content);
-        dd($response);
+        echo $response;
     }
 
     //消息群发接口调用
@@ -343,7 +343,7 @@ class WxController extends Controller
         ];
 
         $data = json_encode($arr,JSON_UNESCAPED_UNICODE);
-        
+
         // 发送post请求并返回返回的数据
         $client = new Client();
         $response = $client->request('POST',$url,['body' => $data]);
