@@ -79,7 +79,7 @@ class WxController extends Controller
             } else {
                 // 首次关注，消息入库
                 $info = [
-                    'subscribe' => $userInfo['subscribe'],
+                    'sub_status' => 1,
                     'openid' => $userInfo['openid'],
                     'nickname' => $userInfo['nickname'],
                     'sex' => $userInfo['sex'],
@@ -103,6 +103,10 @@ class WxController extends Controller
                             </xml>";
                 }
             }
+        }else if($xml->MsgType == 'event' && $xml->Event == 'unsubscribe'){
+            // 用户状态修改为未关注
+            WecharModel::where('openid',$openid)->update(['sub_status' => 0]);
+
             // 消息回复、天气回复
         }else if($xml->MsgType == 'text'){
             // 判断是否是城市+天气格式
@@ -301,5 +305,30 @@ class WxController extends Controller
         // 请求并转为数组
         $weather = json_decode(file_get_contents($url),true);
         return $weather;
+    }
+
+    // 消息群发
+    public function massTexting(){
+        WecharModel::where('sub_status',1)->get();
+    }
+
+    //消息群发接口调用
+    public function sendText($openid,$content){
+        // 群发消息接口
+        $url = "https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token=".$this->getAccessToken();
+
+        // 群发数据
+        $data = [
+            'touser' => $openid,
+            'msgtype' => 'text',
+            'text' => [
+                'content' => $content
+            ]
+        ];
+
+        // 发送post请求并返回返回的数据
+        $client = new Client();
+        $response = $client->request('post',$url,['body' => $data]);
+        return $response->getBody();
     }
 }
