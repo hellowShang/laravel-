@@ -341,7 +341,7 @@ class WxController extends Controller
                 'content' => $content
             ]
         ];
-        $data = json_encode($arr);
+        $data = json_encode($arr,JSON_UNESCAPED_UNICODE);
 
         // 发送post请求并返回返回的数据
         $client = new Client();
