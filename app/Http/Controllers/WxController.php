@@ -334,13 +334,14 @@ class WxController extends Controller
         $url = "https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token=".$this->getAccessToken();
 
         // 群发数据
-        $data = [
+        $arr = [
             'touser' => $openid,
             'msgtype' => 'text',
             'text' => [
                 'content' => $content
             ]
         ];
+        $data = json_encode($arr);
 
         // 发送post请求并返回返回的数据
         $client = new Client();
