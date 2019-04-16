@@ -343,7 +343,7 @@ class WxController extends Controller
         ];
 
         $data = json_encode($arr,JSON_UNESCAPED_UNICODE);
-        dd($data);
+        
         // 发送post请求并返回返回的数据
         $client = new Client();
         $response = $client->request('POST',$url,['body' => $data]);
