@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Redis;
 use App\Model\Wechar\WecharModel;
 use App\Model\Wechar\MediaModel;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 // 第三方库
 use GuzzleHttp\Client;
 
@@ -326,7 +328,7 @@ class WxController extends Controller
         $openid = array_column($arr,'openid');
 
         // 群发内容
-        $content = '美好的一天从早上开始，今天你微笑了吗？';
+        $content = '美好的一天从早上开始，今天你微笑了吗？'.Str::random(6);
 
         // 响应回来的信息
         $response = $this-> sendText($openid,$content);
@@ -354,4 +356,5 @@ class WxController extends Controller
         $response = $client->request('POST',$url,['body' => $data]);
         return $response->getBody();
     }
+
 }
