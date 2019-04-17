@@ -15,7 +15,7 @@ class WecharPayController extends Controller
     public $url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 
     // 异步回调
-    public $notify = "https://1809liuaibin.comcto.com/wechar/notify";
+    public $notify = "http://1809liuaibin.comcto.com/wechar/notify";
 
     /**
      * 测试-微信支付
