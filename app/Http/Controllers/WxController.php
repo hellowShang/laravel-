@@ -321,9 +321,14 @@ class WxController extends Controller
 
     // 消息群发
     public function massTexting(){
+        // 获取openID
         $arr = WecharModel::where(['sub_status'=> 1])->get()->toArray();
         $openid = array_column($arr,'openid');
-        $content = '今天周二，吃米饭';
+
+        // 群发内容
+        $content = '哈哈哈';
+
+        // 响应回来的信息
         $response = $this-> sendText($openid,$content);
         echo $response;
     }
