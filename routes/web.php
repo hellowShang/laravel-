@@ -35,4 +35,4 @@ Route::get('/send','WxController@massTexting');
 Route::get('/wechar/pay','Wechar\WecharPayController@wecharPay');
 
 // 异步通知
-Route::get('/wechar/notify','Wechar\WecharPayController@notify');
+Route::post('/wechar/notify','Wechar\WecharPayController@notify');
