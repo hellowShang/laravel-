@@ -326,7 +326,7 @@ class WxController extends Controller
         $openid = array_column($arr,'openid');
 
         // 群发内容
-        $content = '哈哈哈';
+        $content = '美好的一天从早上开始，今天你微笑了吗？';
 
         // 响应回来的信息
         $response = $this-> sendText($openid,$content);
