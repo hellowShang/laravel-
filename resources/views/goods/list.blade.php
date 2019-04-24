@@ -20,7 +20,7 @@
     </dl>
 @endforeach
 
-<script src="http://res.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
+<script src="http://res2.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
 <script>
         // 通过config接口注入权限验证配置
         wx.config({
@@ -40,6 +40,7 @@
                 imgUrl: 'http://blog.lab993.com/uploads/goodsimgs/20190220/9974b706375f38d1834dc58df0ec5878.jpg', // 分享图标
                 success: function () {
                     // 设置成功
+                    alert('分享成功');
                 }
             })
         });
