@@ -35,11 +35,10 @@
             jsApiList: ['updateAppMessageShareData'] // 必填，需要使用的JS接口列表
         });
 
-        $('#btn').click(function(){
             // 通过ready接口处理成功验证
             wx.ready(function(){
 
-                // 分享到朋友圈
+                // 分享到朋友
                 wx.updateAppMessageShareData({
                     title: '最新推荐的商品', // 分享标题
                     desc: '没什么可说的', // 分享描述
@@ -51,8 +50,6 @@
                 });
             });
         });
-
-    });
 </script>
 </body>
 </html>
