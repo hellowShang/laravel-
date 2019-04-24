@@ -40,7 +40,7 @@
                 imgUrl: 'http://blog.lab993.com/uploads/goodsimgs/20190220/9974b706375f38d1834dc58df0ec5878.jpg', // 分享图标
                 success: function () {
                     // 设置成功
-                    alert('分享成功');
+                    // alert('分享成功');
                 }
             })
         });

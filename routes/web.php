@@ -40,5 +40,16 @@ Route::post('/wechar/notify','Wechar\WecharPayController@notify');
 // 商品数据
 Route::get('/goods/list','WxController@list');
 
+// 微信网页授权
+Route::get('/wechat/url','Wechar\WebAutoController@webUrl');
+
+// 授权后重定向的回调链接地址， 请使用 urlEncode 对链接进行处理
+//Route::get('/wechat/url',function(){
+//    echo urlEncode($_GET['url']);
+//});
+
+
+
+
 
 
