@@ -16,7 +16,9 @@ use GuzzleHttp\Client;
 
 class WxController extends Controller
 {
-    // 处理微信第一次接入
+    /**
+     * 处理微信第一次接入
+     */
     public function valid(){
         // 开发者通过检验signature对请求进行校验（下面有校验方式）。
         // 若确认此次GET请求来自微信服务器，请原样返回echostr参数内容，则接入生效，成为开发者成功，否则接入失败。
@@ -51,8 +53,8 @@ class WxController extends Controller
                 if(strpos($xml->Content,'+')) {
                     $message = $this->weacherMessage($xml, $time);
                 }else if($xml->Content == '最新商品'){
-                    // 数据库获取并推送
-                    $this-> getGoodsInfo($xml);
+                   // 图文回复
+                    $message = $this->news($xml,$time);
                 }
             }else{
                 // 用户消息、素材下载
@@ -64,7 +66,11 @@ class WxController extends Controller
 
     }
 
-    // 获取用户基本信息
+    /**
+     * 获取用户基本信息
+     * @param $openid
+     * @return mixed
+     */
     public function getUserInfo($openid){
         // 获取access_token
         $access_token = $this->getAccessToken();
@@ -76,7 +82,13 @@ class WxController extends Controller
         return $arr;
     }
 
-    // 用户基本消息入库，消息回复
+    /**
+     * 用户基本消息入库，消息回复
+     * @param $xml
+     * @param $openid
+     * @param $userInfo
+     * @return string
+     */
     public  function userInfoAdd($xml,$openid,$userInfo){
         $time = time();
         if($xml->Event == 'subscribe'){
@@ -132,7 +144,10 @@ class WxController extends Controller
         return $message;
     }
 
-    // 获取access_token
+    /**
+     * 获取access_token
+     * @return mixed
+     */
     public function getAccessToken(){
         // 检测是否有缓存
         $key = 'access_token';
@@ -160,7 +175,10 @@ class WxController extends Controller
         return $token;
     }
 
-    // 自定义菜单接口
+    /**
+     * 自定义菜单接口
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function menu()
     {
         /**  1 请求路径接口*/
@@ -230,7 +248,11 @@ class WxController extends Controller
         }
     }
 
-    //素材下载
+    /**
+     * 素材下载
+     * @param $xml
+     * @param $openid
+     */
     public function media($xml,$openid){
            // 素材下载接口
            $mdeiaid = $xml->MediaId;
@@ -277,7 +299,11 @@ class WxController extends Controller
            }
    }
 
-    // 天气回复接口
+    /**
+     * 天气回复接口
+     * @param $city
+     * @return mixed
+     */
     public function weather($city){
         // 调用天气接口
         $url = "https://free-api.heweather.net/s6/weather/now?key=46229c21f97440298467a9f78ca63710&location=".$city;
@@ -286,7 +312,12 @@ class WxController extends Controller
         return $weather;
     }
 
-    // 天气消息回复
+    /**
+     * 天气消息回复
+     * @param $xml
+     * @param $time
+     * @return string
+     */
     public function weacherMessage($xml,$time){
             // 获取城市名称
             $city = explode('+',$xml->Content)[0];
@@ -324,7 +355,10 @@ class WxController extends Controller
             return $message;
     }
 
-    // 消息群发
+    /**
+     * 消息群发
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function massTexting(){
         // 获取openID
         $arr = WecharModel::where(['sub_status'=> 1])->get()->toArray();
@@ -338,7 +372,13 @@ class WxController extends Controller
         echo $response;
     }
 
-    //消息群发接口调用
+    /**
+     * 消息群发接口调用
+     * @param $openid
+     * @param $content
+     * @return \Psr\Http\Message\StreamInterface
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function sendText($openid,$content){
         // 群发消息接口
         $url = "https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token=".$this->getAccessToken();
@@ -360,10 +400,56 @@ class WxController extends Controller
         return $response->getBody();
     }
 
-    // 最新商品数据获取
-    public function  getGoodsInfo($xml){
+    /**
+     * 最新商品数据获取
+     * @param $xml
+     * @return bool|\Illuminate\Support\Collection
+     */
+    public function  getGoodsInfo(){
         $goodsInfo = DB::table('shop_goods')->orderBy('create_time','desc')->limit(5)->get();
-        dd($goodsInfo);
+        if($goodsInfo){
+            return $goodsInfo;
+        }else{
+            return false;
+        }
     }
 
+    /**
+     * 图文回复
+     * @param $xml
+     * @param $time
+     * @return string
+     */
+    public function news($xml,$time){
+        // 数据库获取并推送
+        $goodsInfo = $this-> getGoodsInfo();
+        if($goodsInfo){
+            foreach($goodsInfo as $v){
+                $message = "<xml>       
+                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                                <CreateTime>$time</CreateTime>
+                                <MsgType><![CDATA[news]]></MsgType>
+                                <ArticleCount>1</ArticleCount>
+                                <Articles>
+                                    <item>
+                                        <Title><![CDATA[最新商品查看]]></Title>
+                                        <Description><![CDATA[绝对不容错过，今日精选五条商品推荐]]></Description>
+                                        <PicUrl><![CDATA[http://blog.lab993.com/uploads/goodsimgs/".$v->goods_img."]]></PicUrl>
+                                        <Url><![CDATA[http://blog.lab993.com/goods/goodsDetail/".$v->goods_id."]]></Url>
+                                    </item>
+                                </Articles>
+                            </xml>";
+            }
+        }else{
+            $message = "<xml>       
+                            <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                            <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                            <CreateTime>$time</CreateTime>
+                            <MsgType><![CDATA[text]]></MsgType>
+                            <Content><![CDATA[数据有误]]></Content>
+                        </xml>";
+        }
+        return $message;
+    }
 }
