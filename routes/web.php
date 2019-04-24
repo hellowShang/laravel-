@@ -44,7 +44,7 @@ Route::get('/goods/list','WxController@list');
 Route::get('/wechat/auto','Wechar\WebAutoController@webUrl');
 
 // 授权后重定向的回调链接地址， 请使用 urlEncode 对链接进行处理
-Route::get('/wechat/url',function(){
+Route::get('/url',function(){
     echo urlEncode($_GET['url']);
 });
 
