@@ -20,7 +20,6 @@
     </dl>
 @endforeach
 
-<button id="btn">分享到朋友圈</button>
 <script src="http://res.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
 <script src="/js/jquery.js"></script>
 <script>
@@ -43,7 +42,7 @@
                     title: '最新推荐的商品', // 分享标题
                     desc: '没什么可说的', // 分享描述
                     link: 'http://wechar.lab993.com/goods/list', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-                    imgUrl: 'https://i04picsos.sogoucdn.com/778fa0784ef03a8e', // 分享图标
+                    imgUrl: "http://blog.lab993.com/uploads/goodsimgs/20190220/9a10ac50708954fedd7b349d15e3c3d6.jpg", // 分享图标
                     success: function () {
                         // 用户点击了分享后执行的回调函数
                     },
