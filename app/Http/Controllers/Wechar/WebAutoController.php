@@ -28,13 +28,7 @@ class WebAutoController extends Controller
 
             if ($arr) {
                 // 已入库，消息回复
-                $message = "<xml>
-                            <ToUserName><![CDATA[".env('WX_APPID')."]]></ToUserName>
-                            <FromUserName><![CDATA[$openid]]></FromUserName>
-                            <CreateTime>$time</CreateTime>
-                            <MsgType><![CDATA[text]]></MsgType>
-                            <Content><![CDATA[欢迎登录，" . $arr['nickname'] . "]]></Content>
-                        </xml>";
+                $message = "欢迎登录，".$arr['nickname'];
             } else {
                 // 首次关注，消息入库
                 $info = [
@@ -52,24 +46,12 @@ class WebAutoController extends Controller
                 $res = WecharModel::insert($info);
                 if ($res) {
                     // 消息回复
-                    $message = "<xml>
-                                <ToUserName><![CDATA[".env('WX_APPID')."]]></ToUserName>
-                                <FromUserName><![CDATA[$openid]]></FromUserName>
-                                <CreateTime>$time</CreateTime>
-                                <MsgType><![CDATA[text]]></MsgType>
-                                <Content><![CDATA[你好" . $response2['nickname'] . "，欢迎登录]]></Content>
-                            </xml>";
+                    $message = "你好" . $response2['nickname'] . "，欢迎登录";
                 }
             }
         }else{
             // 消息回复
-            $message = "<xml>
-                                <ToUserName><![CDATA[".env('WX_APPID')."]]></ToUserName>
-                                <FromUserName><![CDATA[$openid]]></FromUserName>
-                                <CreateTime>$time</CreateTime>
-                                <MsgType><![CDATA[text]]></MsgType>
-                                <Content><![CDATA[出错了]]></Content>
-                            </xml>";
+            $message = "出错了";
         }
         echo $message;
     }
