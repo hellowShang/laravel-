@@ -424,7 +424,6 @@ class WxController extends Controller
         // 数据库获取并推送
         $goodsInfo = $this-> getGoodsInfo();
         if($goodsInfo){
-            foreach($goodsInfo as $v){
                 $message = "<xml>       
                                 <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
                                 <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
@@ -435,12 +434,11 @@ class WxController extends Controller
                                     <item>
                                         <Title><![CDATA[最新商品查看]]></Title>
                                         <Description><![CDATA[绝对不容错过，今日精选五条商品推荐]]></Description>
-                                        <PicUrl><![CDATA[http://blog.lab993.com/uploads/goodsimgs/".$v->goods_img."]]></PicUrl>
-                                        <Url><![CDATA[http://blog.lab993.com/goods/goodsDetail/".$v->goods_id."]]></Url>
+                                        <PicUrl><![CDATA[https://i04picsos.sogoucdn.com/778fa0784ef03a8e]]></PicUrl>
+                                        <Url><![CDATA[http://wechar.lab993.com/goods/list]]></Url>
                                     </item>
                                 </Articles>
                             </xml>";
-            }
         }else{
             $message = "<xml>       
                             <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
@@ -451,5 +449,35 @@ class WxController extends Controller
                         </xml>";
         }
         return $message;
+    }
+
+    /**
+     * 微信jssdk
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function list(){
+        // 1. 准备jsapi_ticket、noncestr、timestamp和url
+        // 获取jsapi_ticket
+        $jsapi_ticket = getJsapiTicket();
+        $noncestr=Str::random(10);
+        $timestamp=time();
+        $url= $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+
+        // 2. 字典序排序
+        $str = "jsapi_ticket=$jsapi_ticket&noncestr=$noncestr&timestamp=$timestamp&url=$url";
+
+        // 3. 对string1进行sha1签名，得到signature：
+        $signature = sha1($str);
+
+        // 4. 数据传递到视图
+        $data = [
+            'appid'  => env('WECHAR_APPID'),
+            'noncestr'      => $noncestr,
+            'timestamp'     => $timestamp,
+            'url'           => $url,
+            'signature'     => $signature,
+             'goodsInfo' => $this->getGoodsInfo()
+        ];
+        return view('goods.list',$data);
     }
 }

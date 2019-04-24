@@ -37,3 +37,8 @@ Route::get('/wechar/pay','Wechar\WecharPayController@wecharPay');
 // 异步通知
 Route::post('/wechar/notify','Wechar\WecharPayController@notify');
 
+// 商品数据
+Route::get('/goods/list','WxController@list');
+
+
+
