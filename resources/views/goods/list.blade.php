@@ -40,7 +40,7 @@
             wx.ready(function(){
 
                 // 分享到朋友圈
-                wx.onMenuShareTimeline({
+                wx.updateTimelineShareData({
                     title: '最新推荐的商品', // 分享标题
                     link: 'http://wechar.lab993.com/goods/list', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
                     imgUrl: 'https://i04picsos.sogoucdn.com/778fa0784ef03a8e', // 分享图标
