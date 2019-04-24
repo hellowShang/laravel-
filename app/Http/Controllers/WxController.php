@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use App\Model\Wechar\WecharModel;
 use App\Model\Wechar\MediaModel;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -46,8 +47,13 @@ class WxController extends Controller
             }
         }else{
             if($xml->MsgType == 'text'){
-                // 消息回复、天气回复
-                $message = $this->weacherMessage($xml,$time);
+                // 判断是否是城市+天气格式
+                if(strpos($xml->Content,'+')) {
+                    $message = $this->weacherMessage($xml, $time);
+                }else if($xml->Content == '最新商品'){
+                    // 数据库获取并推送
+                    $this-> getGoodsInfo($xml);
+                }
             }else{
                 // 用户消息、素材下载
                 $this-> media($xml,$openid);
@@ -282,8 +288,6 @@ class WxController extends Controller
 
     // 天气消息回复
     public function weacherMessage($xml,$time){
-        // 判断是否是城市+天气格式
-        if(strpos($xml->Content,'+')){
             // 获取城市名称
             $city = explode('+',$xml->Content)[0];
             // 获取该城市的天气状况数据
@@ -318,7 +322,6 @@ class WxController extends Controller
                             </xml>";
             }
             return $message;
-        }
     }
 
     // 消息群发
@@ -355,6 +358,12 @@ class WxController extends Controller
         $client = new Client();
         $response = $client->request('POST',$url,['body' => $data]);
         return $response->getBody();
+    }
+
+    // 最新商品数据获取
+    public function  getGoodsInfo($xml){
+        $goodsInfo = DB::table('shop_goods')->orderBy('create_time','desc')->limit(5)->get();
+        dd($goodsInfo);
     }
 
 }
