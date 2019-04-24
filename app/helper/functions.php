@@ -12,7 +12,7 @@ function getAccessToken(){
     if($token){
         return $token;
     }else{
-        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".env('WECHAR_APPID')."&secret=".env('WECHAR_SECRET');
+        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".env('WX_APPID')."&secret=".env('WX_SECRET');
         $response = json_decode(file_get_contents($url),true);
         if(isset($response['access_token'])){
             // 存缓存
