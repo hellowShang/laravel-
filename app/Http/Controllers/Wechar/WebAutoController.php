@@ -71,6 +71,6 @@ class WebAutoController extends Controller
                                 <Content><![CDATA[出错了]]></Content>
                             </xml>";
         }
-
+        echo $message;
     }
 }
