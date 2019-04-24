@@ -28,7 +28,7 @@ class WebAutoController extends Controller
 
             if ($arr) {
                 // 已入库，消息回复
-                $message = "欢迎登录，".$arr['nickname'];
+                $message = "<script>alert('欢迎登录，".$arr['nickname']."')</script>";
             } else {
                 // 首次关注，消息入库
                 $info = [
@@ -46,12 +46,12 @@ class WebAutoController extends Controller
                 $res = WecharModel::insert($info);
                 if ($res) {
                     // 消息回复
-                    $message = "你好" . $response2['nickname'] . "，欢迎登录";
+                    $message = "<script>alert('你好" . $response2['nickname'] . "，欢迎登录')</script>";
                 }
             }
         }else{
             // 消息回复
-            $message = "出错了";
+            $message = "<script>alert('出错了')</script>";
         }
         echo $message;
     }
