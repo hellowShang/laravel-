@@ -471,7 +471,7 @@ class WxController extends Controller
 
         // 4. 数据传递到视图
         $data = [
-            'appid'  => env('WECHAR_APPID'),
+            'appid'  => env('WX_APPID'),
             'noncestr'      => $noncestr,
             'timestamp'     => $timestamp,
             'url'           => $url,
