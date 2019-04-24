@@ -51,6 +51,7 @@ class WxController extends Controller
             if($xml->MsgType == 'text'){
                 // 判断是否是城市+天气格式
                 if(strpos($xml->Content,'+')) {
+                    // 天气回复
                     $message = $this->weacherMessage($xml, $time);
                 }else if($xml->Content == '最新商品'){
                    // 图文回复
@@ -476,7 +477,7 @@ class WxController extends Controller
             'timestamp'     => $timestamp,
             'url'           => $url,
             'signature'     => $signature,
-             'goodsInfo' => $this->getGoodsInfo()
+            'goodsInfo' => $this->getGoodsInfo()
         ];
         return view('goods.list',$data);
     }

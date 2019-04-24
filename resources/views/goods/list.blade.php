@@ -5,7 +5,7 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>商品推荐</title>
 </head>
 <body>
 @foreach($goodsInfo as $v)
@@ -32,20 +32,17 @@
             jsApiList: ['updateAppMessageShareData'] // 必填，需要使用的JS接口列表
         });
 
-            // 通过ready接口处理成功验证
-            wx.ready(function(){
-
-                // 分享到朋友
-                wx.updateAppMessageShareData({
-                    title: '最新推荐的商品', // 分享标题
-                    desc: '没什么可说的', // 分享描述
-                    link: 'http://wechar.lab993.com/goods/list', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-                    imgUrl: "http://blog.lab993.com/uploads/goodsimgs/20190220/9a10ac50708954fedd7b349d15e3c3d6.jpg", // 分享图标
-                    success: function () {
-                        // 用户点击了分享后执行的回调函数
-                    },
-                });
-            });
+        wx.ready(function () {   //需在用户可能点击分享按钮前就先调用
+            wx.updateAppMessageShareData({
+                title: '最新商品数据推荐', // 分享标题
+                desc: '没什么可说的', // 分享描述
+                link: 'http://wechar.lab993.com/goods/list', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+                imgUrl: 'http://blog.lab993.com/uploads/goodsimgs/20190220/9974b706375f38d1834dc58df0ec5878.jpg', // 分享图标
+                success: function () {
+                    // 设置成功
+                }
+            })
+        });
 </script>
 </body>
 </html>
