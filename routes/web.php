@@ -40,6 +40,9 @@ Route::post('/wechar/notify','Wechar\WecharPayController@notify');
 // 商品数据
 Route::get('/goods/list','WxController@list');
 
+// 商品详细数据
+Route::get('/goods/detail/{id}','WxController@detail');
+
 // 微信网页授权
 Route::get('/wechat/auto','Wechar\WebAutoController@webUrl');
 

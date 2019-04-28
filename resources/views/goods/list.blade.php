@@ -10,9 +10,9 @@
 <body>
 @foreach($goodsInfo as $v)
     <dl>
-        <dt><a href="http://www.lab993.com/goods/goodsDetail/{{$v->goods_id}}"><img src="http://www.lab993.com/uploads/goodsimgs/{{$v->goods_img}}" width="100" height="100" /></a></dt>
+        <dt><a href="http://wechar.lab993.com/goods/detail/{{$v->goods_id}}"><img src="http://www.lab993.com/uploads/goodsimgs/{{$v->goods_img}}" width="100" height="100" /></a></dt>
         <dd>
-            <h3><a href="http://www.lab993.com/goods/goodsDetail/{{$v->goods_id}}">{{$v->goods_name}}</a></h3>
+            <h3><a href="http://wechar.lab993.com/goods/detail/{{$v->goods_id}}">{{$v->goods_name}}</a></h3>
             <div class="prolist-price"><strong>¥{{$v->self_price}}</strong> <span>¥{{$v->market_price}}</span></div>
             <div class="prolist-yishou"><span>5.0折</span> <em>销量：{{$v->goods_score}}</em></div>
         </dd>
@@ -24,7 +24,7 @@
 <script>
         // 通过config接口注入权限验证配置
         wx.config({
-            debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
             appId: "{{$appid}}", // 必填，公众号的唯一标识
             timestamp:"{{$timestamp}}", // 必填，生成签名的时间戳
             nonceStr: "{{$noncestr}}", // 必填，生成签名的随机串

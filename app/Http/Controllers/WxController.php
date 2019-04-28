@@ -442,7 +442,7 @@ class WxController extends Controller
                                         <Title><![CDATA[最新商品查看]]></Title>
                                         <Description><![CDATA[绝对不容错过，今日精选五条商品推荐]]></Description>
                                         <PicUrl><![CDATA[https://i04picsos.sogoucdn.com/778fa0784ef03a8e]]></PicUrl>
-                                        <Url><![CDATA[http://wechar.lab993.com/goods/list]]></Url>
+                                        <Url><![CDATA[http://www.lab993.com/goods/list]]></Url>
                                     </item>
                                 </Articles>
                             </xml>";
@@ -499,7 +499,8 @@ class WxController extends Controller
 
         // post 数据
         $data = [
-            'action_name' => 'QR_LIMIT_SCENE',
+            'expire_seconds' => 604800,
+            'action_name' => 'QR_SCENE',
             'action_info' =>  [
                 'scene' => [
                     'scene_id' => 10011
@@ -540,7 +541,7 @@ class WxController extends Controller
     public function scan($xml,$openid,$userInfo){
         $time = time();
         switch($xml->Event){
-            case 'subscribe':
+            case 'subscribe':       // 关注
                 // 首次关注，消息入库
                 $info = [
                     'sub_status' => 1,
@@ -575,7 +576,7 @@ class WxController extends Controller
                             </xml>";
                 }
                 break;
-            case 'SCAN':
+            case 'SCAN':          // 关注了的扫码
                 // 消息回复
                 $message = "<xml>
                                 <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
@@ -593,7 +594,7 @@ class WxController extends Controller
                                   </Articles>
                             </xml>";
                 break;
-            case 'unsubscribe':
+            case 'unsubscribe':     // 取消关注
                 $res = DB::table('wechar_wxuser')->where('openid',$openid)->delete();
                 if($res){
                     $message = 'success';
@@ -601,5 +602,26 @@ class WxController extends Controller
                 break;
         }
         return $message;
+    }
+
+    // 商品详细数据
+    public function detail($id){
+        if(!$id){
+            header('Refresh:3;url=/goods/list');
+            die('请重新操作');
+        }
+        // 商品数据
+        $detail = DB::table('shop_goods')->where('goods_id',$id)->first();
+        if($detail){
+            $url = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+            $data = [
+                'detail' => $detail,
+                'url' => $url
+            ];
+            return view('goods.detail',$data);
+        }else{
+            header('Refresh:3;url=/goods/list');
+            die('暂无查到商品数据');
+        }
     }
 }
