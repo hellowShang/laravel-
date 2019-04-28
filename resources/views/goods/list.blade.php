@@ -10,9 +10,9 @@
 <body>
 @foreach($goodsInfo as $v)
     <dl>
-        <dt><a href="http://blog.lab993.com/goods/goodsDetail/{{$v->goods_id}}"><img src="http://blog.lab993.com/uploads/goodsimgs/{{$v->goods_img}}" width="100" height="100" /></a></dt>
+        <dt><a href="http://www.lab993.com/goods/goodsDetail/{{$v->goods_id}}"><img src="http://www.lab993.com/uploads/goodsimgs/{{$v->goods_img}}" width="100" height="100" /></a></dt>
         <dd>
-            <h3><a href="http://blog.lab993.com/goods/goodsDetail/{{$v->goods_id}}">{{$v->goods_name}}</a></h3>
+            <h3><a href="http://www.lab993.com/goods/goodsDetail/{{$v->goods_id}}">{{$v->goods_name}}</a></h3>
             <div class="prolist-price"><strong>¥{{$v->self_price}}</strong> <span>¥{{$v->market_price}}</span></div>
             <div class="prolist-yishou"><span>5.0折</span> <em>销量：{{$v->goods_score}}</em></div>
         </dd>
@@ -37,7 +37,7 @@
                 title: '最新商品数据推荐', // 分享标题
                 desc: '没什么可说的', // 分享描述
                 link: 'http://wechar.lab993.com/goods/list', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-                imgUrl: 'http://blog.lab993.com/uploads/goodsimgs/20190220/9974b706375f38d1834dc58df0ec5878.jpg', // 分享图标
+                imgUrl: 'http://www.lab993.com/uploads/goodsimgs/20190220/9974b706375f38d1834dc58df0ec5878.jpg', // 分享图标
                 success: function () {
                     // 设置成功
                     // alert('分享成功');
