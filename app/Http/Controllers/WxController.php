@@ -52,7 +52,7 @@ class WxController extends Controller
             }
             */
             // 扫描带参数的二维码事件
-            $this->scan($xml,$openid,$userInfo);
+            $message = $this->scan($xml,$openid,$userInfo);
         }else{
             if($xml->MsgType == 'text'){
                 // 判断是否是城市+天气格式
@@ -530,13 +530,76 @@ class WxController extends Controller
         return view('wechar.code',['url' => $url]);
     }
 
+    /**
+     * 扫描带参数的二维码
+     * @param $xml
+     * @param $openid
+     * @param $userInfo
+     * @return string
+     */
     public function scan($xml,$openid,$userInfo){
+        $time = time();
         switch($xml->Event){
             case 'subscribe':
-                dd($userInfo);
-//                $res = DB::table('wechar_wxuser')->insert();
-            case 'scan':
-                echo 123;
+                // 首次关注，消息入库
+                $info = [
+                    'sub_status' => 1,
+                    'openid' => $userInfo['openid'],
+                    'nickname' => $userInfo['nickname'],
+                    'sex' => $userInfo['sex'],
+                    'city' => $userInfo['city'],
+                    'province' => $userInfo['province'],
+                    'country' => $userInfo['country'],
+                    'headimgurl' => $userInfo['headimgurl'],
+                    'subscribe_time' => $userInfo['subscribe_time'],
+                ];
+
+                // 数据入库
+                $res = DB::table('wechar_wxuser')->insert($info);
+                if ($res) {
+                    // 消息回复
+                    $message = "<xml>
+                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                                <CreateTime>$time</CreateTime>
+                                <MsgType><![CDATA[news]]></MsgType>
+                                <ArticleCount>1</ArticleCount>
+                                  <Articles>
+                                    <item>
+                                      <Title><![CDATA[欢迎关注".$userInfo['nickname']."]]></Title>
+                                      <Description><![CDATA[暂时没有什么可以描述的，就这点东西]]></Description>
+                                      <PicUrl><![CDATA[https://i04picsos.sogoucdn.com/778fa0784ef03a8e]]></PicUrl>
+                                      <Url><![CDATA[http://wechar.lab993.com/goods/list]]></Url>
+                                    </item>
+                                  </Articles>
+                            </xml>";
+                }
+                break;
+            case 'SCAN':
+                // 消息回复
+                $message = "<xml>
+                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                                <CreateTime>$time</CreateTime>
+                                <MsgType><![CDATA[news]]></MsgType>
+                                <ArticleCount>1</ArticleCount>
+                                  <Articles>
+                                    <item>
+                                      <Title><![CDATA[欢迎回来]]></Title>
+                                      <Description><![CDATA[暂时没有什么可以描述的，就这点东西]]></Description>
+                                      <PicUrl><![CDATA[https://i04picsos.sogoucdn.com/778fa0784ef03a8e]]></PicUrl>
+                                      <Url><![CDATA[http://wechar.lab993.com/goods/list]]></Url>
+                                    </item>
+                                  </Articles>
+                            </xml>";
+                break;
+            case 'unsubscribe':
+                $res = DB::table('wechar_wxuser')->where('openid',$openid)->delete();
+                if($res){
+                    $message = 'success';
+                }
+                break;
         }
+        return $message;
     }
 }
