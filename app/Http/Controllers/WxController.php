@@ -42,16 +42,17 @@ class WxController extends Controller
         // 获取openID
         $openid = $xml->FromUserName;
         if($xml->MsgType == 'event') {
-            /*
             // 获取用户基本信息
             $userInfo = $this-> getUserInfo($openid);
-            // 用户消息入库
+            /*
+            // 关注、取消关注事件
             if($userInfo){
                 // 信息返回并输出
                 $message = $this-> userInfoAdd($xml,$openid,$userInfo);
             }
             */
-            
+            // 扫描带参数的二维码事件
+            $this->scan($xml,$openid,$userInfo);
         }else{
             if($xml->MsgType == 'text'){
                 // 判断是否是城市+天气格式
@@ -527,5 +528,15 @@ class WxController extends Controller
     public function ercode(){
         $url = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket='.$this->getTicket();
         return view('wechar.code',['url' => $url]);
+    }
+
+    public function scan($xml,$openid,$userInfo){
+        switch($xml->Event){
+            case 'subscribe':
+                dd($userInfo);
+//                $res = DB::table('wechar_wxuser')->insert();
+            case 'scan':
+                echo 123;
+        }
     }
 }
