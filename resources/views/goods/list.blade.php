@@ -29,10 +29,11 @@
             timestamp:"{{$timestamp}}", // 必填，生成签名的时间戳
             nonceStr: "{{$noncestr}}", // 必填，生成签名的随机串
             signature: "{{$signature}}",// 必填，签名
-            jsApiList: ['updateAppMessageShareData'] // 必填，需要使用的JS接口列表
+            jsApiList: ['updateAppMessageShareData','updateTimelineShareData'] // 必填，需要使用的JS接口列表
         });
 
         wx.ready(function () {   //需在用户可能点击分享按钮前就先调用
+            // 分享朋友及qq
             wx.updateAppMessageShareData({
                 title: '最新商品数据推荐', // 分享标题
                 desc: '没什么可说的', // 分享描述
@@ -41,6 +42,17 @@
                 success: function () {
                     // 设置成功
                     // alert('分享成功');
+                }
+            });
+
+            // 分享朋友圈及qq空间
+            wx.updateTimelineShareData({
+                title: '最新商品数据推荐', // 分享标题
+                desc: '没什么可说的', // 分享描述
+                link: 'http://wechar.lab993.com/goods/list', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+                imgUrl: 'http://www.lab993.com/uploads/goodsimgs/20190220/9974b706375f38d1834dc58df0ec5878.jpg', // 分享图标
+                success: function () {
+                    // 设置成功
                 }
             })
         });

@@ -604,7 +604,11 @@ class WxController extends Controller
         return $message;
     }
 
-    // 商品详细数据
+    /**
+     * 商品详细数据
+     * @param $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function detail($id){
         if(!$id){
             header('Refresh:3;url=/goods/list');
@@ -613,6 +617,7 @@ class WxController extends Controller
         // 商品数据
         $detail = DB::table('shop_goods')->where('goods_id',$id)->first();
         if($detail){
+            // 网址拼接
             $url = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
             $data = [
                 'detail' => $detail,
