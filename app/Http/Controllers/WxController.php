@@ -481,4 +481,41 @@ class WxController extends Controller
         ];
         return view('goods.list',$data);
     }
+
+    /**
+     * 获取ticket
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public  function getTicket(){
+        //  请求接口
+        $url = ' https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token='.getAccessToken();
+
+        // post 数据
+        $data = [
+            'action_name' => 'QR_LIMIT_SCENE',
+            'action_info' =>  [
+                'scene' => [
+                    'scene_id' => 10011
+                ]
+            ]
+        ];
+        $data = json_encode($data);
+
+        // 发送请求
+        $client = new Client();
+        $response = $client->request('post',$url,['body' => $data]);
+
+        // 接收响应并转化为数组
+        $arr = json_decode($response,true);
+        $ticket = $arr['ticket'];
+
+        // 返回ticket
+        return $ticket;
+    }
+
+    public function ercode(){
+        var_dump($this-> getTicket());die;
+        $url = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=';
+    }
 }

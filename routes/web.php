@@ -48,6 +48,9 @@ Route::get('/url',function(){
     echo urlEncode($_GET['url']);
 });
 
+// 生成二维码
+Route::get('/weixin/ercode','WxController@ercode');
+
 
 
 

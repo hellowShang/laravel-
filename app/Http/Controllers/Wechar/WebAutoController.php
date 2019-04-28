@@ -10,6 +10,8 @@ class WebAutoController extends Controller
 {
     // 微信网页授权
     public function webUrl(){
+        // https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe11e8daa8e892e24&redirect_uri=http%3A%2F%2Fwechar.lab993.com%2Fwechat%2Fauto&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect
+
         // 1. 用户同意授权，获取code
         $code = $_GET['code'];
 
