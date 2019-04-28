@@ -25,7 +25,9 @@ class WxController extends Controller
         echo $_GET['echostr'];
     }
 
-    // 接收微信消息推送
+    /**
+     * 接收微信消息推送
+     */
     public function wx(){
         // 接收微信消息推送post过来的信息并写入到自定义的log日志中
         $content = file_get_contents('php://input');
@@ -40,6 +42,7 @@ class WxController extends Controller
         // 获取openID
         $openid = $xml->FromUserName;
         if($xml->MsgType == 'event') {
+            /*
             // 获取用户基本信息
             $userInfo = $this-> getUserInfo($openid);
             // 用户消息入库
@@ -47,6 +50,8 @@ class WxController extends Controller
                 // 信息返回并输出
                 $message = $this-> userInfoAdd($xml,$openid,$userInfo);
             }
+            */
+            
         }else{
             if($xml->MsgType == 'text'){
                 // 判断是否是城市+天气格式
@@ -489,7 +494,7 @@ class WxController extends Controller
      */
     public  function getTicket(){
         //  请求接口
-        $url = ' https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token='.getAccessToken();
+        $url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token='.getAccessToken();
 
         // post 数据
         $data = [
@@ -504,18 +509,23 @@ class WxController extends Controller
 
         // 发送请求
         $client = new Client();
-        $response = $client->request('post',$url,['body' => $data]);
+        $response = $client->request('POST',$url,['body' => $data]);
 
         // 接收响应并转化为数组
-        $arr = json_decode($response,true);
+        $arr = json_decode($response->getBody(),true);
         $ticket = $arr['ticket'];
 
         // 返回ticket
         return $ticket;
     }
 
+    /**
+     * 返回二维码
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function ercode(){
-        var_dump($this-> getTicket());die;
-        $url = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=';
+        $url = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket='.$this->getTicket();
+        return view('wechar.code',['url' => $url]);
     }
 }
