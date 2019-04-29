@@ -2,7 +2,7 @@
 
 namespace App\Admin\Controllers;
 
-use App\Model\Wechar\WecharModel;
+use App\Model\WecharModel;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
@@ -80,7 +80,8 @@ class WecharController extends Controller
     protected function grid()
     {
         $grid = new Grid(new WecharModel);
-        $grid->id('Id');
+
+        $grid->id('用户Id');
         $grid->nickname('昵称');
         $grid->sex('性别')->display(function($sex){
             if($sex == 1){
@@ -93,20 +94,10 @@ class WecharController extends Controller
             return '<img src="'.$img.'" width="30px" height="30px">';
         });
         $grid->subscribe_time('关注时间')->display(function($time){
-            return date('Y-m-d H:i:s',$time);
+            return date("Y-m-d H:i:s",$time);
         });
-
-//        $grid->column('address','地址')->display(function($grid){
-//            return  $grid->country().$grid->province().'省'.$grid->city().'市';
-//        });
         $grid->openid('Openid');
-        $grid->subscribe('Subscribe')->display(function($subscribe){
-            if($subscribe){
-                return '已关注';
-            }else{
-                return '已取消';
-            }
-        });
+        $grid->sub_status('关注状态');
 
         return $grid;
     }
@@ -121,16 +112,13 @@ class WecharController extends Controller
     {
         $show = new Show(WecharModel::findOrFail($id));
 
-        $show->id('Id');
-        $show->nickname('Nickname');
-        $show->sex('Sex');
-        $show->headimgurl('Headimgurl');
-        $show->subscribe_time('Subscribe time');
-        $show->city('City');
-        $show->province('Province');
-        $show->country('Country');
+        $show->id('用户Id');
+        $show->nickname('昵称');
+        $show->sex('性别');
+        $show->headimgurl('头像');
+        $show->subscribe_time('关注时间');
         $show->openid('Openid');
-        $show->subscribe('Subscribe');
+        $show->sub_status('关注状态');
 
         return $show;
     }
@@ -144,15 +132,10 @@ class WecharController extends Controller
     {
         $form = new Form(new WecharModel);
 
-        $form->text('nickname', 'Nickname');
-        $form->number('sex', 'Sex');
-        $form->text('headimgurl', 'Headimgurl');
-        $form->number('subscribe_time', 'Subscribe time');
-        $form->text('city', 'City');
-        $form->text('province', 'Province');
-        $form->text('country', 'Country');
+        $form->text('nickname', '昵称');
+        $form->number('sex', '性别');
+        $form->text('headimgurl', '头像');
         $form->text('openid', 'Openid');
-        $form->number('subscribe', 'Subscribe');
 
         return $form;
     }
