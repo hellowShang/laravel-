@@ -44,6 +44,11 @@ class WxController extends Controller
         if($xml->MsgType == 'event') {
             // 获取用户基本信息
             $userInfo = $this-> getUserInfo($openid);
+            if($xml->Event == 'CLICK'){
+                // 自定义菜单点击跳转事件
+                $this->welfare();
+                echo 'success';die;
+            }
             /*
             // 关注、取消关注事件
             if($userInfo){
@@ -230,9 +235,9 @@ class WxController extends Controller
 
                 // 第三个顶级菜单
                 [
-                    "type" => "view",
+                    "type" => "click",
                     "name" => "最新福利",
-                    "url" => "https://open.weixin.qq.com/connect/oauth2/authorize?appid=".env('WX_APPID')."&redirect_uri=http%3A%2F%2Fwechar.lab993.com%2Fwechat%2Fauto&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect"
+                    "key" => "key_menu_003"
                 ],
             ]
         ];
@@ -662,5 +667,13 @@ class WxController extends Controller
                           </Articles>
                     </xml>";
         return $message;
+    }
+
+    /**
+     * 跳转至福利页面
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function welfare(){
+        header('Refresh:3;url=https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe11e8daa8e892e24&redirect_uri=http%3A%2F%2Fwechar.lab993.com%2Fwechat%2Fauto&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect');
     }
 }
