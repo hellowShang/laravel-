@@ -62,6 +62,9 @@ class WxController extends Controller
                 }else if($xml->Content == '最新商品'){
                    // 图文回复
                     $message = $this->news($xml,$time);
+                }else{
+                    // 商品信息回复
+                    $message = $this->back($xml,$time);
                 }
             }else{
                 // 用户消息、素材下载
@@ -628,5 +631,37 @@ class WxController extends Controller
             header('Refresh:3;url=/goods/list');
             die('暂无查到商品数据');
         }
+    }
+
+    /**
+     * 商品信息回复
+     * @param $xml
+     * @param $time
+     * @return string
+     */
+    public function back($xml,$time){
+        // 根据条件搜索商品信息
+        $where = $xml->Content;
+        $goodsDetail = DB::table('shop_goods')->where(['goods_name','like',"%$where%"])->first();
+        if(!$goodsDetail){
+            $id = rand(11,99);
+            $goodsDetail =  DB::table('shop_goods')->where(['goods_id',$id])->first();
+        }
+        $message = "<xml>
+                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                                <CreateTime>$time</CreateTime>
+                                <MsgType><![CDATA[news]]></MsgType>
+                                <ArticleCount>1</ArticleCount>
+                                  <Articles>
+                                    <item>
+                                      <Title><![CDATA[$goodsDetail->name]]></Title>
+                                      <Description><![CDATA[$goodsDetail->desc]]></Description>
+                                      <PicUrl><![CDATA[http://www.lab993.com/upload/goodsimgs/$goodsDetail->goods_img]]></PicUrl>
+                                      <Url><![CDATA[http://wechar.lab993.com/goods/detail/".$goodsDetail->goods_id."]]></Url>
+                                    </item>
+                                  </Articles>
+                            </xml>";
+        return $message;
     }
 }
