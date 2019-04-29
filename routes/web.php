@@ -47,12 +47,16 @@ Route::get('/goods/detail/{id}','WxController@detail');
 Route::get('/wechat/auto','Wechar\WebAutoController@webUrl');
 
 // 授权后重定向的回调链接地址， 请使用 urlEncode 对链接进行处理
-Route::get('/url',function(){
-    echo urlEncode($_GET['url']);
-});
+Route::get('/url','WxController@welfare');
 
 // 生成二维码
 Route::get('/weixin/ercode','WxController@ercode');
+
+// 签名网页授权code
+Route::get('/sign','WxController@sign1');
+
+// 签名微信网页授权
+Route::get('/wechat/sign','WxController@sign2');
 
 
 

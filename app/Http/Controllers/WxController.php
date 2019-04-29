@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
-use App\Model\Wechar\WecharModel;
-use App\Model\Wechar\MediaModel;
+use App\Model\WecharModel;
+use App\Model\MediaModel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -44,11 +44,6 @@ class WxController extends Controller
         if($xml->MsgType == 'event') {
             // 获取用户基本信息
             $userInfo = $this-> getUserInfo($openid);
-            if($xml->Event == 'CLICK'){
-                // 自定义菜单点击跳转事件
-                $this->welfare();
-                echo 'success';die;
-            }
             /*
             // 关注、取消关注事件
             if($userInfo){
@@ -204,26 +199,9 @@ class WxController extends Controller
             'button' => [
                 // 第一个一级菜单
                 [
-                    "name" => "生活",
-                    "sub_button"=> [
-                        [
-                            "type" => "view",
-                            "name" => "搜索",
-                            "url" => "http://www.soso.com/"
-                        ],
-                        [
-                            "type" => "pic_photo_or_album",
-                            "name" => "拍照或者相册发图",
-                            "key"  => "key_menu_001",
-                            "sub_button" =>[ ]
-                        ],
-                        [
-                            "type" => "scancode_waitmsg",
-                            "name" => "扫码带提示",
-                            "key" => "key_menu_002",
-                            "sub_button" => [ ]
-                        ]
-                    ],
+                    "type" => "view",
+                    "name" => "签到",
+                    "url" => "http://wechar.lab993.com/sign"
                 ],
 
                 // 第二个顶级菜单
@@ -235,9 +213,9 @@ class WxController extends Controller
 
                 // 第三个顶级菜单
                 [
-                    "type" => "click",
+                    "type" => "view",
                     "name" => "最新福利",
-                    "key" => "key_menu_003"
+                    "url" => "http://wechar.lab993.com/url"
                 ],
             ]
         ];
@@ -608,6 +586,10 @@ class WxController extends Controller
                     $message = 'success';
                 }
                 break;
+            case 'VIEW':           // 最新福利
+                $this ->welfare();
+                $message = 'success';
+                break;
         }
         return $message;
     }
@@ -671,13 +653,80 @@ class WxController extends Controller
 
     /**
      * 跳转至福利页面
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @param $key
+     * @return stringd
      */
     public function welfare(){
-        // 网址加密  urlEncode()
-        $redirect = urlEncode('http://wechar.lab993.com/wechat/auto');
-        // 跳转获取code
-        $url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=".env('WX_APPID')."&redirect_uri=$redirect&response_type=code&scope=SCOPE&state=STATE#wechat_redirect";
-        header('Refresh:3;url='.$url);
+            // 网址加密  urlEncode()
+            $redirect = urlEncode('http://wechar.lab993.com/wechat/auto');
+            // 跳转获取code
+            $url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=".env('WX_APPID')."&redirect_uri=$redirect&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect";
+            header("location:$url");
     }
+
+    /**
+     * 重定向
+     */
+    public function sign1(){
+        // 网址加密  urlEncode()
+        $redirect = urlEncode('http://wechar.lab993.com/wechat/sign');
+        // 跳转获取code
+        $url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=".env('WX_APPID')."&redirect_uri=$redirect&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect";
+        header("location:$url");
+    }
+
+    public function sign2()
+    {
+        // 1. 用户同意授权，获取code
+        $code = $_GET['code'];
+
+        // 2. 通过code换取网页授权access_token
+        $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=" . env('WX_APPID') . "&secret=" . env('WX_SECRET') . "&code=$code&grant_type=authorization_code";
+        $response = json_decode(file_get_contents($url), true);
+
+
+        // 3. 检验授权凭证（access_token）是否有效
+        $token = $response['access_token'];
+        $openid = $response['openid'];
+        $url1 = "https://api.weixin.qq.com/sns/auth?access_token=$token&openid=$openid";
+        $response1 = json_decode(file_get_contents($url1), true);
+        if ($response1['errcode'] == 0) {
+
+            // 4. 拉取用户信息(需scope为 snsapi_userinfo) 并入库
+            $url2 = "https://api.weixin.qq.com/sns/userinfo?access_token=$token&openid=$openid&lang=zh_CN";
+            $response2 = json_decode(file_get_contents($url2), true);
+
+            // 查询当前openID数据库是否存在
+            $arr = WecharModel::where(['openid' => $openid])->first();
+
+            if (!$arr) {
+                // 首次登录，数据入库
+                $info = [
+                    'sub_status' => 1,
+                    'openid' => $response2['openid'],
+                    'nickname' => $response2['nickname'],
+                    'sex' => $response2['sex'],
+                    'city' => $response2['city'],
+                    'province' => $response2['province'],
+                    'country' => $response2['country'],
+                    'headimgurl' => $response2['headimgurl'],
+                ];
+
+                // 数据入库
+                $res = WecharModel::insert($info);
+            }
+            echo "<font size='16px'>你好" . $response2['nickname'] . "：签到成功</font>";
+
+            // 签到时间redis队列缓存
+            $key = "1:wechart:".$openid;
+            $time = date('Y-m-d H:i:s',time());
+            Redis::lpush($key,$time);
+            $arr = Redis::lrange($key,0,-1);
+            echo "<pre>";print_r($arr);echo "</pre>";
+        }else{
+            // 出错消息回复
+            echo "<script>alert('出错了')</script>";
+        }
+    }
+
 }
