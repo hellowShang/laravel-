@@ -674,6 +674,10 @@ class WxController extends Controller
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function welfare(){
-        header('Refresh:3;url=https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe11e8daa8e892e24&redirect_uri=http%3A%2F%2Fwechar.lab993.com%2Fwechat%2Fauto&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect');
+        // 网址加密  urlEncode()
+        $redirect = urlEncode('http://wechar.lab993.com/wechat/auto');
+        // 跳转获取code
+        $url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=".env('WX_APPID')."&redirect_uri=$redirect&response_type=code&scope=SCOPE&state=STATE#wechat_redirect";
+        header('Refresh:3;url='.$url);
     }
 }
