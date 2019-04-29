@@ -35,10 +35,10 @@ class WxController extends Controller
         $str = $time.$content."\n";
         // 检测是否有logs目录，没有就创建
         is_dir('logs') or mkdir('logs',0777,true);
-        file_put_contents("logs/wx.log",$str,FILE_APPEND);
+
 
         // 把xml格式的数据转化成对象格式
-        $xml = simplexml_load_string($content);
+        $xml = simplexml_load_string($content);file_put_contents("logs/wx.log",$str,FILE_APPEND);
         // 获取openID
         $openid = $xml->FromUserName;
         if($xml->MsgType == 'event') {
@@ -644,7 +644,7 @@ class WxController extends Controller
         $goodsDetail = DB::table('shop_goods')->where('goods_name','like',"%{$xml->Content}%")->first();
         if(!$goodsDetail){
             $id = rand(11,99);
-            $goodsDetail =  DB::table('shop_goods')->where(['goods_id',$id])->first();
+            $goodsDetail =  DB::table('shop_goods')->where(['goods_id'=>$id])->first();
         }
         $message = "<xml>
                         <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
