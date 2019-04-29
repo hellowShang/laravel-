@@ -35,7 +35,7 @@ class WebAutoController extends Controller
 
             if ($arr) {
                 // 已入库，消息回复
-                $message = "<script>alert('欢迎登录，".$arr['nickname']."')</script>";
+                $message = "<script>alert('欢迎登录，".$arr['nickname']."，3秒后跳转至福利页面')</script>";
             } else {
                 // 首次登录，数据入库
                 $info = [
@@ -53,7 +53,7 @@ class WebAutoController extends Controller
                 $res = WecharModel::insert($info);
                 if ($res) {
                     // 消息回复
-                    $message = "<script>alert('你好" . $response2['nickname'] . "，欢迎登录')</script>";
+                    $message = "<script>alert('你好" . $response2['nickname'] . "，欢迎登录，3秒后跳转至福利页面')</script>";
                 }
             }
 
@@ -62,6 +62,7 @@ class WebAutoController extends Controller
             // 出错消息回复
             $message = "<script>alert('出错了')</script>";
         }
+        header('Refresh:3;url=/goods/detail');
         echo $message;
     }
 }

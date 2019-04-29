@@ -97,7 +97,13 @@ class WecharController extends Controller
             return date("Y-m-d H:i:s",$time);
         });
         $grid->openid('Openid');
-        $grid->sub_status('关注状态');
+        $grid->sub_status('关注状态')->display(function($num){
+            if($num == 1){
+                return '已关注';
+            }else{
+                return '已取消';
+            }
+        });
 
         return $grid;
     }
@@ -133,8 +139,8 @@ class WecharController extends Controller
         $form = new Form(new WecharModel);
 
         $form->text('nickname', '昵称');
-        $form->number('sex', '性别');
-        $form->text('headimgurl', '头像');
+        $form->radio('sex', '性别')->options(['1' => '男', '2'=> '女']);
+        $form->image('headimgurl', '头像');
         $form->text('openid', 'Openid');
 
         return $form;
