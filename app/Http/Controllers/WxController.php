@@ -641,27 +641,26 @@ class WxController extends Controller
      */
     public function back($xml,$time){
         // 根据条件搜索商品信息
-        $where = $xml->Content;
-        $goodsDetail = DB::table('shop_goods')->where(['goods_name','like',"%$where%"])->first();
+        $goodsDetail = DB::table('shop_goods')->where('goods_name','like',"%{$xml->Content}%")->first();
         if(!$goodsDetail){
             $id = rand(11,99);
             $goodsDetail =  DB::table('shop_goods')->where(['goods_id',$id])->first();
         }
         $message = "<xml>
-                                <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
-                                <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
-                                <CreateTime>$time</CreateTime>
-                                <MsgType><![CDATA[news]]></MsgType>
-                                <ArticleCount>1</ArticleCount>
-                                  <Articles>
-                                    <item>
-                                      <Title><![CDATA[$goodsDetail->name]]></Title>
-                                      <Description><![CDATA[$goodsDetail->desc]]></Description>
-                                      <PicUrl><![CDATA[http://www.lab993.com/upload/goodsimgs/$goodsDetail->goods_img]]></PicUrl>
-                                      <Url><![CDATA[http://wechar.lab993.com/goods/detail/".$goodsDetail->goods_id."]]></Url>
-                                    </item>
-                                  </Articles>
-                            </xml>";
+                        <ToUserName><![CDATA[$xml->FromUserName]]></ToUserName>
+                        <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
+                        <CreateTime>$time</CreateTime>
+                        <MsgType><![CDATA[news]]></MsgType>
+                        <ArticleCount>1</ArticleCount>
+                          <Articles>
+                            <item>
+                              <Title><![CDATA[$goodsDetail->goods_name]]></Title>
+                              <Description><![CDATA[".rtrim(ltrim($goodsDetail->goods_desc,'<p>'),'</p>')."]]></Description>
+                              <PicUrl><![CDATA[http://www.lab993.com/uploads/goodsimgs/$goodsDetail->goods_img]]></PicUrl>
+                              <Url><![CDATA[http://wechar.lab993.com/goods/detail/".$goodsDetail->goods_id."]]></Url>
+                            </item>
+                          </Articles>
+                    </xml>";
         return $message;
     }
 }
