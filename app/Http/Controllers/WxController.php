@@ -44,15 +44,16 @@ class WxController extends Controller
         if($xml->MsgType == 'event') {
             // 获取用户基本信息
             $userInfo = $this-> getUserInfo($openid);
-            /*
+
             // 关注、取消关注事件
             if($userInfo){
                 // 信息返回并输出
                 $message = $this-> userInfoAdd($xml,$openid,$userInfo);
             }
-            */
             // 扫描带参数的二维码事件
-            $message = $this->scan($xml,$openid,$userInfo);
+//            $message = $this->scan($xml,$openid,$userInfo);
+
+
         }else{
             if($xml->MsgType == 'text'){
                 // 判断是否是城市+天气格式
@@ -141,7 +142,7 @@ class WxController extends Controller
                                 <FromUserName><![CDATA[$xml->ToUserName]]></FromUserName>
                                 <CreateTime>$time</CreateTime>
                                 <MsgType><![CDATA[text]]></MsgType>
-                                <Content><![CDATA[你好" . $userInfo['nickname'] . "，欢迎关注]]></Content>
+                                <Content><![CDATA[请输入商品名字字样]]></Content>
                             </xml>";
                 }
             }
@@ -152,6 +153,22 @@ class WxController extends Controller
             $message = 'success';
         }
         return $message;
+    }
+
+    public function accessToken(){
+        $key = "access:token:";
+        $token = Redis::get($key);
+        if($token){
+            return $token;
+        }else{
+            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".env('WX_APPID')."&secret=".env("WX_SECRET");
+            $response = file_get_contents($url);
+            if(isset($response['access_token'])){
+                Redis::set($key,$response['access_token']);
+                Redis::expire($key,3600);
+                return $response['access_token'];
+            }
+        }
     }
 
     /**
@@ -728,5 +745,7 @@ class WxController extends Controller
             echo "<script>alert('出错了')</script>";
         }
     }
+
+
 
 }
